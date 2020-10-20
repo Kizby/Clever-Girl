@@ -1,15 +1,15 @@
 using System;
 
-namespace XRL.World.Parts
+namespace XRL.World.Parts.CleverGirl
 {
     [Serializable]
-    public class CleverGirl_LootPickup : IPart {
-        public const string ENABLE_COMMAND = "CleverGirl_EnableLootPickup";
-        public const string DISABLE_COMMAND = "CleverGirl_DisableLootPickup";
+    public class AIPickupGear : IPart {
+        public const string ENABLE_COMMAND = "CleverGirl_EnableGearPickup";
+        public const string DISABLE_COMMAND = "CleverGirl_DisableGearPickup";
 
         public bool Enabled { get; private set; } = false;
-        public string ActionName => Enabled ? "Clever Girl - Disable Loot Pickup" : "Clever Girl - Enable Loot Pickup";
-        public string ActionDisplay => Enabled ? "disable loot {{inventoryhotkey|p}}ickup" : "enable loot {{inventoryhotkey|p}}ickup";
+        public string ActionName => Enabled ? "Clever Girl - Disable Gear Pickup" : "Clever Girl - Enable Gear Pickup";
+        public string ActionDisplay => Enabled ? "disable gear {{inventoryhotkey|p}}ickup" : "enable gear {{inventoryhotkey|p}}ickup";
         public string ActionCommand => Enabled ? DISABLE_COMMAND : ENABLE_COMMAND;
         public char ActionKey => 'p';
 

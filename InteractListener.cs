@@ -1,9 +1,9 @@
 using System;
 
-namespace XRL.World.Parts
+namespace XRL.World.Parts.CleverGirl
 {
     [Serializable]
-    public class CleverGirl_InteractListener : IPart {
+    public class InteractListener : IPart {
         public override bool WantEvent(int ID, int cascade) =>
             base.WantEvent(ID, cascade) ||
             ID == OwnerGetInventoryActionsEvent.ID ||
@@ -14,19 +14,19 @@ namespace XRL.World.Parts
             {
                 if (E.Object.IsPlayerLed() && !E.Object.IsPlayer())
                 {
-                    var lootPickup = E.Object.RequirePart<CleverGirl_LootPickup>();
-                    E.AddAction(lootPickup.ActionName, lootPickup.ActionDisplay, lootPickup.ActionCommand, lootPickup.ActionKey, true, WorksAtDistance: true);
+                    var aiPickupGear = E.Object.RequirePart<AIPickupGear>();
+                    E.AddAction(aiPickupGear.ActionName, aiPickupGear.ActionDisplay, aiPickupGear.ActionCommand, aiPickupGear.ActionKey, true, WorksAtDistance: true);
                 }
             }
             return true;
         }
 
         public override bool HandleEvent(InventoryActionEvent E) {
-            if (E.Command == CleverGirl_LootPickup.ENABLE_COMMAND) {
-                E.Item.RequirePart<CleverGirl_LootPickup>().Enable();
+            if (E.Command == AIPickupGear.ENABLE_COMMAND) {
+                E.Item.RequirePart<AIPickupGear>().Enable();
             }
-            if (E.Command == CleverGirl_LootPickup.DISABLE_COMMAND) {
-                E.Item.RequirePart<CleverGirl_LootPickup>().Disable();
+            if (E.Command == AIPickupGear.DISABLE_COMMAND) {
+                E.Item.RequirePart<AIPickupGear>().Disable();
             }
             return true;
         }
