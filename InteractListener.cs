@@ -23,10 +23,10 @@ namespace XRL.World.Parts.CleverGirl
 
         public override bool HandleEvent(InventoryActionEvent E) {
             if (E.Command == AIPickupGear.ENABLE_COMMAND) {
-                E.Item.RequirePart<AIPickupGear>().Enable();
+                E.Item.RequirePart<AIPickupGear>().Enabled = true;
             }
             if (E.Command == AIPickupGear.DISABLE_COMMAND) {
-                E.Item.RequirePart<AIPickupGear>().Disable();
+                E.Item.RequirePart<AIPickupGear>().Enabled = false;
             }
             return true;
         }
