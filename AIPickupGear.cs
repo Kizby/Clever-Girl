@@ -5,7 +5,9 @@ namespace XRL.World.Parts.CleverGirl
 {
     using System.Linq;
     using AI.GoalHandlers.CleverGirl;
+    using XRL.Rules;
     using XRL.World.AI.GoalHandlers;
+    using XRL.World.CleverGirl;
 
     [Serializable]
     public class AIPickupGear : IPart {
@@ -30,25 +32,38 @@ namespace XRL.World.Parts.CleverGirl
                 return;
             }
 
+            Utility.MaybeLog("Turn " + TurnNumber);
+
             var parts = ParentObject.Body.GetParts();
             var currentCell = ParentObject.CurrentCell;
-            if (findBetterPrimaryWeapon(parts, currentCell)) {
+
+            // total carry capacity if we dropped everything in our inventory
+            var capacity = Stats.GetMaxWeight(ParentObject) - ParentObject.Body.GetWeight();
+
+            // if we're already overburdened by just our equipment, nothing to do
+            if (capacity < 0) {
+                Utility.MaybeLog("Overburdened by " + capacity);
                 return;
             }
-            if (findBetterArmor(parts, currentCell)) {
+
+            if (findBetterPrimaryWeapon(parts, currentCell, capacity)) {
                 return;
             }
-            if (findBetterAlternateWeapon(parts, currentCell)) {
+            if (findBetterArmor(parts, currentCell, capacity)) {
+                return;
+            }
+            if (findBetterAlternateWeapon(parts, currentCell, capacity)) {
                 return;
             }
         }
 
-        private bool findBetterPrimaryWeapon(List<BodyPart> parts, Cell currentCell) {
+        private bool findBetterPrimaryWeapon(List<BodyPart> parts, Cell currentCell, int capacity) {
             var weapons = currentCell.ParentZone
                 .FastFloodVisibility(currentCell.X, currentCell.Y, 30, "MeleeWeapon", ParentObject)
                 .Where(go => go.HasTag("MeleeWeapon") && ParentObject.HasLOSTo(go))
                 .ToList();
             if (0 == weapons.Count) {
+                Utility.MaybeLog("No weapons");
                 return false;
             }
             
@@ -59,6 +74,7 @@ namespace XRL.World.Parts.CleverGirl
             var primaryPart = parts.Find(part => part.Primary);
             var equipped = primaryPart?.Equipped;
             if (null != equipped && !equipped.FireEvent("CanBeUnequipped")) {
+                Utility.MaybeLog("Can't unequip my primary weapon");
                 return false;
             }
 
@@ -73,6 +89,10 @@ namespace XRL.World.Parts.CleverGirl
                 if (weapon.HasPropertyOrTag("NoAIEquip")) {
                     continue;
                 }
+                if (weapon.WeightEach - (equipped?.Weight ?? 0) > capacity) {
+                    Utility.MaybeLog("No way to equip " + weapon.DisplayNameOnlyStripped + " without being overburdened");
+                    continue;
+                }
                 betterWeapon = ParentObject.pBrain.IsNewWeaponBetter(weapon, equipped) ? weapon : null;
                 break;
             }
@@ -84,12 +104,13 @@ namespace XRL.World.Parts.CleverGirl
             GoGet(betterWeapon);
             return true;
         }
-        private bool findBetterArmor(List<BodyPart> parts, Cell currentCell) {
+        private bool findBetterArmor(List<BodyPart> parts, Cell currentCell, int capacity) {
             var armors = currentCell.ParentZone
                 .FastFloodVisibility(currentCell.X, currentCell.Y, 30, "Armor", ParentObject)
                 .Where(go => ParentObject.HasLOSTo(go))
                 .ToList();
             if (0 == armors.Count) {
+                Utility.MaybeLog("No armors");
                 return false;
             }
             
@@ -112,6 +133,10 @@ namespace XRL.World.Parts.CleverGirl
                     if (armor.GetPart<Armor>().WornOn != part.Type) {
                         continue;
                     }
+                    if (armor.WeightEach - (part.Equipped?.Weight ?? 0) > capacity) {
+                        Utility.MaybeLog("No way to equip " + armor.DisplayNameOnlyStripped + " on " + part.Name + " without being overburdened");
+                        continue;
+                    }
                     if (ParentObject.pBrain.IsNewArmorBetter(armor, part.Equipped)) {
                         betterArmor = armor;
                         break;
@@ -129,7 +154,7 @@ namespace XRL.World.Parts.CleverGirl
             GoGet(betterArmor);
             return true;
         }
-        private bool findBetterAlternateWeapon(List<BodyPart> parts, Cell currentCell) {
+        private bool findBetterAlternateWeapon(List<BodyPart> parts, Cell currentCell, int capacity) {
             var weapons = currentCell.ParentZone
                 .FastFloodVisibility(currentCell.X, currentCell.Y, 30, "MeleeWeapon", ParentObject)
                 .Where(go => go.HasTag("MeleeWeapon") && ParentObject.HasLOSTo(go))
@@ -155,6 +180,10 @@ namespace XRL.World.Parts.CleverGirl
                 }
                 foreach (var part in parts) {
                     if ("Hand" != part.Type) {
+                        continue;
+                    }
+                    if (weapon.WeightEach - (part.Equipped?.Weight ?? 0) > capacity) {
+                        Utility.MaybeLog("No way to equip " + weapon.DisplayNameOnlyStripped + " on " + part.Name + " without being overburdened");
                         continue;
                     }
                     if (ParentObject.pBrain.IsNewWeaponBetter(weapon, part.Equipped)) {
