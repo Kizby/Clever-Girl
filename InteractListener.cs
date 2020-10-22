@@ -24,9 +24,12 @@ namespace XRL.World.Parts.CleverGirl
         public override bool HandleEvent(InventoryActionEvent E) {
             if (E.Command == AIPickupGear.ENABLE_COMMAND) {
                 E.Item.RequirePart<AIPickupGear>().Enabled = true;
+                // Anyone picking up gear should know how to unburden themself
+                E.Item.RequirePart<AIUnburden>().Enabled = true;
             }
             if (E.Command == AIPickupGear.DISABLE_COMMAND) {
                 E.Item.RequirePart<AIPickupGear>().Enabled = false;
+                E.Item.RequirePart<AIUnburden>().Enabled = false;
             }
             return true;
         }
