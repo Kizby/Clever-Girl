@@ -34,174 +34,86 @@ namespace XRL.World.Parts.CleverGirl
 
             Utility.MaybeLog("Turn " + TurnNumber);
 
-            var parts = ParentObject.Body.GetParts();
+            // Primary weapon
+            if (findBetterThing("MeleeWeapon",
+                                go => go.HasTag("MeleeWeapon"),
+                                new Brain.WeaponSorter(ParentObject),
+                                (part, thing) => part.Primary && part.Type == thing.GetPart<MeleeWeapon>().Slot)) {
+                return;
+            }
+
+            // Armor
+            if (findBetterThing("Armor",
+                                _ => true,
+                                new Brain.GearSorter(ParentObject),
+                                (part, thing) => part.Type == thing.GetPart<Armor>().WornOn)) {
+                return;
+            }
+
+            // Additional weapons
+            if (findBetterThing("MeleeWeapon",
+                                go => go.HasTag("MeleeWeapon"),
+                                new Brain.WeaponSorter(ParentObject),
+                                (part, thing) => !part.Primary && part.Type == thing.GetPart<MeleeWeapon>().Slot)) {
+                return;
+            }
+        }
+
+        private bool findBetterThing(string SearchPart,
+                                     Func<GameObject, bool> whichThings,
+                                     Comparer<GameObject> thingComparer,
+                                     Func<BodyPart, GameObject, bool> whichBodyParts) {
+            var allBodyParts = ParentObject.Body.GetParts();
             var currentCell = ParentObject.CurrentCell;
 
             // total carry capacity if we dropped everything in our inventory
             var capacity = Stats.GetMaxWeight(ParentObject) - ParentObject.Body.GetWeight();
-
             // if we're already overburdened by just our equipment, nothing to do
             if (capacity < 0) {
-                Utility.MaybeLog("Overburdened by " + capacity);
-                return;
-            }
-
-            if (findBetterPrimaryWeapon(parts, currentCell, capacity)) {
-                return;
-            }
-            if (findBetterArmor(parts, currentCell, capacity)) {
-                return;
-            }
-            if (findBetterAlternateWeapon(parts, currentCell, capacity)) {
-                return;
-            }
-        }
-
-        private bool findBetterPrimaryWeapon(List<BodyPart> parts, Cell currentCell, int capacity) {
-            var weapons = currentCell.ParentZone
-                .FastFloodVisibility(currentCell.X, currentCell.Y, 30, "MeleeWeapon", ParentObject)
-                .Where(go => go.HasTag("MeleeWeapon") && ParentObject.HasLOSTo(go))
-                .ToList();
-            if (0 == weapons.Count) {
-                Utility.MaybeLog("No weapons");
-                return false;
-            }
-            
-            if (weapons.Count > 1) {
-                weapons.Sort(new Brain.WeaponSorter(ParentObject));
-            }
-
-            var primaryPart = parts.Find(part => part.Primary);
-            var equipped = primaryPart?.Equipped;
-            if (null != equipped && !equipped.FireEvent("CanBeUnequipped")) {
-                Utility.MaybeLog("Can't unequip my primary weapon");
                 return false;
             }
 
-            var noEquip = ParentObject.GetPropertyOrTag("NoEquip");
-            var noEquipList = string.IsNullOrEmpty(noEquip) ? null : new List<string>(noEquip.CachedCommaExpansion());
-
-            GameObject betterWeapon = null;
-            foreach (var weapon in weapons) {
-                if (noEquipList?.Contains(weapon.Blueprint) ?? false) {
-                    continue;
-                }
-                if (weapon.HasPropertyOrTag("NoAIEquip")) {
-                    continue;
-                }
-                if (weapon.WeightEach - (equipped?.Weight ?? 0) > capacity) {
-                    Utility.MaybeLog("No way to equip " + weapon.DisplayNameOnlyStripped + " without being overburdened");
-                    continue;
-                }
-                betterWeapon = ParentObject.pBrain.IsNewWeaponBetter(weapon, equipped) ? weapon : null;
-                break;
-            }
-
-            if (null == betterWeapon) {
-                return false;
-            }
-
-            GoGet(betterWeapon);
-            return true;
-        }
-        private bool findBetterArmor(List<BodyPart> parts, Cell currentCell, int capacity) {
-            var armors = currentCell.ParentZone
-                .FastFloodVisibility(currentCell.X, currentCell.Y, 30, "Armor", ParentObject)
+            var things =  currentCell.ParentZone
+                .FastFloodVisibility(currentCell.X, currentCell.Y, 30, SearchPart, ParentObject)
+                .Where(whichThings)
                 .Where(go => ParentObject.HasLOSTo(go))
                 .ToList();
-            if (0 == armors.Count) {
-                Utility.MaybeLog("No armors");
+            if (0 == things.Count) {
+                Utility.MaybeLog("No " + SearchPart + "s");
                 return false;
             }
-            
-            if (armors.Count > 1) {
-                armors.Sort(new Brain.GearSorter(ParentObject));
-            }
+
+            things.Sort(thingComparer);
 
             var noEquip = ParentObject.GetPropertyOrTag("NoEquip");
             var noEquipList = string.IsNullOrEmpty(noEquip) ? null : new List<string>(noEquip.CachedCommaExpansion());
 
-            GameObject betterArmor = null;
-            foreach (var armor in armors) {
-                if (noEquipList?.Contains(armor.Blueprint) ?? false) {
+            foreach (var thing in things) {
+                if (noEquipList?.Contains(thing.Blueprint) ?? false) {
                     continue;
                 }
-                if (armor.HasPropertyOrTag("NoAIEquip")) {
+                if (thing.HasPropertyOrTag("NoAIEquip")) {
                     continue;
                 }
-                foreach (var part in parts) {
-                    if (armor.GetPart<Armor>().WornOn != part.Type) {
+                foreach (var bodyPart in allBodyParts) {
+                    if (!whichBodyParts(bodyPart, thing)) {
                         continue;
                     }
-                    if (armor.WeightEach - (part.Equipped?.Weight ?? 0) > capacity) {
-                        Utility.MaybeLog("No way to equip " + armor.DisplayNameOnlyStripped + " on " + part.Name + " without being overburdened");
+                    if (!(bodyPart.Equipped?.FireEvent("CanBeUnequipped") ?? true)) {
+                        Utility.MaybeLog("Can't unequip the " + bodyPart.Equipped.DisplayNameOnlyStripped);
                         continue;
                     }
-                    if (ParentObject.pBrain.IsNewArmorBetter(armor, part.Equipped)) {
-                        betterArmor = armor;
-                        break;
-                    }
-                }
-                if (null != betterArmor) {
-                    break;
-                }
-            }
-
-            if (null == betterArmor) {
-                return false;
-            }
-
-            GoGet(betterArmor);
-            return true;
-        }
-        private bool findBetterAlternateWeapon(List<BodyPart> parts, Cell currentCell, int capacity) {
-            var weapons = currentCell.ParentZone
-                .FastFloodVisibility(currentCell.X, currentCell.Y, 30, "MeleeWeapon", ParentObject)
-                .Where(go => go.HasTag("MeleeWeapon") && ParentObject.HasLOSTo(go))
-                .ToList();
-            if (0 == weapons.Count) {
-                return false;
-            }
-            
-            if (weapons.Count > 1) {
-                weapons.Sort(new Brain.WeaponSorter(ParentObject));
-            }
-
-            var noEquip = ParentObject.GetPropertyOrTag("NoEquip");
-            var noEquipList = string.IsNullOrEmpty(noEquip) ? null : new List<string>(noEquip.CachedCommaExpansion());
-
-            GameObject betterWeapon = null;
-            foreach (var weapon in weapons) {
-                if (noEquipList?.Contains(weapon.Blueprint) ?? false) {
-                    continue;
-                }
-                if (weapon.HasPropertyOrTag("NoAIEquip")) {
-                    continue;
-                }
-                foreach (var part in parts) {
-                    if ("Hand" != part.Type) {
+                    if (thing.WeightEach - (bodyPart.Equipped?.Weight ?? 0) > capacity) {
+                        Utility.MaybeLog("No way to equip " + thing.DisplayNameOnlyStripped + " on " + bodyPart.Name + " without being overburdened");
                         continue;
                     }
-                    if (weapon.WeightEach - (part.Equipped?.Weight ?? 0) > capacity) {
-                        Utility.MaybeLog("No way to equip " + weapon.DisplayNameOnlyStripped + " on " + part.Name + " without being overburdened");
-                        continue;
-                    }
-                    if (ParentObject.pBrain.IsNewWeaponBetter(weapon, part.Equipped)) {
-                        betterWeapon = weapon;
-                        break;
+                    if (thingComparer.Compare(thing, bodyPart.Equipped) < 0) {
+                        GoGet(thing);
+                        return true;
                     }
                 }
-                if (null != betterWeapon) {
-                    break;
-                }
             }
-
-            if (null == betterWeapon) {
-                return false;
-            }
-
-            GoGet(betterWeapon);
-            return true;
+            return false;
         }
 
         void GoGet(GameObject item) {
