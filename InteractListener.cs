@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 
 namespace XRL.World.Parts.CleverGirl
 {
+    using XRL.World.CleverGirl;
+
     [Serializable]
     public class InteractListener : IPart {
         public override bool WantEvent(int ID, int cascade) =>
@@ -14,8 +17,13 @@ namespace XRL.World.Parts.CleverGirl
             {
                 if (E.Object.IsPlayerLed() && !E.Object.IsPlayer())
                 {
-                    var action = E.Object.HasPart("AIPickupGear") ? AIPickupGear.DISABLE : AIPickupGear.ENABLE;
-                    E.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
+                    var actions = new List<Utility.InventoryAction>{
+                        E.Object.HasPart("AIPickupGear") ? AIPickupGear.DISABLE : AIPickupGear.ENABLE,
+                        AIManageSkills.ACTION,
+                    };
+                    foreach (var action in actions) {
+                        E.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
+                    }
                 }
             }
             return true;
@@ -30,6 +38,10 @@ namespace XRL.World.Parts.CleverGirl
             if (E.Command == AIPickupGear.DISABLE.Command) {
                 E.Item.RemovePart<AIPickupGear>();
                 E.Item.RemovePart<AIUnburden>();
+            }
+            if (E.Command == AIManageSkills.ACTION.Command) {
+                E.Item.RequirePart<AIManageSkills>().Manage();
+                E.RequestInterfaceExit();
             }
             return true;
         }
