@@ -26,8 +26,15 @@ namespace XRL.World.Parts.CleverGirl
                 return;
             }
 
-            // no consideration of value here, just drop heaviest things first
-            foreach (var obj in objects.OrderByDescending(obj => obj.WeightEach)) {
+            // by default, drop heaviest things first
+            Func<GameObject, double> metric = obj => obj.WeightEach;
+            // if they're smart though, use weight/value metric
+            if (ParentObject.GetStatValue("Intelligence") >= 16) {
+                // add a fudge factor so we don't have to compare infinities
+                metric = obj => obj.WeightEach / (obj.ValueEach + 0.01);
+            }
+
+            foreach (var obj in objects.OrderByDescending(metric)) {
                 // how many would we need to drop to fix the whole excess?
                 var toDrop = (excess - 1) / obj.WeightEach + 1; // ceil(excess / obj.WeightEach)
                 if (toDrop < obj.Count) {
