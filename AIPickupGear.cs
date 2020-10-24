@@ -12,16 +12,20 @@ namespace XRL.World.Parts.CleverGirl
 
     [Serializable]
     public class AIPickupGear : IPart {
-        public const string ENABLE_COMMAND = "CleverGirl_EnableGearPickup";
-        public const string DISABLE_COMMAND = "CleverGirl_DisableGearPickup";
+        public static readonly Utility.InventoryAction ENABLE = new Utility.InventoryAction{
+            Name = "Clever Girl - Enable Gear Pickup",
+            Display = "enable gear {{inventoryhotkey|p}}ickup",
+            Command = "CleverGirl_EnableGearPickup",
+            Key = 'p',
+        };
+        public static readonly Utility.InventoryAction DISABLE = new Utility.InventoryAction{
+            Name = "Clever Girl - Disable Gear Pickup",
+            Display = "disable gear {{inventoryhotkey|p}}ickup",
+            Command = "CleverGirl_DisableGearPickup",
+            Key = 'p',
+        };
 
-        public bool Enabled = false;
-        public string ActionName => Enabled ? "Clever Girl - Disable Gear Pickup" : "Clever Girl - Enable Gear Pickup";
-        public string ActionDisplay => Enabled ? "disable gear {{inventoryhotkey|p}}ickup" : "enable gear {{inventoryhotkey|p}}ickup";
-        public string ActionCommand => Enabled ? DISABLE_COMMAND : ENABLE_COMMAND;
-        public char ActionKey => 'p';
-
-        public override bool WantTurnTick() => Enabled;
+        public override bool WantTurnTick() => true;
 
         public override void TurnTick(long TurnNumber)
         {

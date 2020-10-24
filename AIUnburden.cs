@@ -9,8 +9,7 @@ namespace XRL.World.Parts.CleverGirl
 
     [Serializable]
     public class AIUnburden : IPart {
-        public bool Enabled = false;
-        public override bool WantTurnTick() => Enabled;
+        public override bool WantTurnTick() => true;
 
         public override void TurnTick(long TurnNumber)
         {

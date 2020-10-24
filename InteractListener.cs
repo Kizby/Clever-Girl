@@ -14,22 +14,22 @@ namespace XRL.World.Parts.CleverGirl
             {
                 if (E.Object.IsPlayerLed() && !E.Object.IsPlayer())
                 {
-                    var aiPickupGear = E.Object.RequirePart<AIPickupGear>();
-                    E.AddAction(aiPickupGear.ActionName, aiPickupGear.ActionDisplay, aiPickupGear.ActionCommand, aiPickupGear.ActionKey, true, WorksAtDistance: true);
+                    var action = E.Object.HasPart("AIPickupGear") ? AIPickupGear.DISABLE : AIPickupGear.ENABLE;
+                    E.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
                 }
             }
             return true;
         }
 
         public override bool HandleEvent(InventoryActionEvent E) {
-            if (E.Command == AIPickupGear.ENABLE_COMMAND) {
-                E.Item.RequirePart<AIPickupGear>().Enabled = true;
+            if (E.Command == AIPickupGear.ENABLE.Command) {
+                E.Item.RequirePart<AIPickupGear>();
                 // Anyone picking up gear should know how to unburden themself
-                E.Item.RequirePart<AIUnburden>().Enabled = true;
+                E.Item.RequirePart<AIUnburden>();
             }
-            if (E.Command == AIPickupGear.DISABLE_COMMAND) {
-                E.Item.RequirePart<AIPickupGear>().Enabled = false;
-                E.Item.RequirePart<AIUnburden>().Enabled = false;
+            if (E.Command == AIPickupGear.DISABLE.Command) {
+                E.Item.RemovePart<AIPickupGear>();
+                E.Item.RemovePart<AIUnburden>();
             }
             return true;
         }

@@ -10,5 +10,12 @@ namespace XRL.World.CleverGirl
                 MetricsManager.LogInfo(filePath + ":" + lineNumber + ": " + message);
             }
         }
+
+        public class InventoryAction {
+            public string Name;
+            public string Display;
+            public string Command;
+            public char Key;
+        }
     }
 }
