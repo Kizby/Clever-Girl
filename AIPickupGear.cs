@@ -5,6 +5,7 @@ namespace XRL.World.Parts.CleverGirl
 {
     using System.Linq;
     using AI.GoalHandlers.CleverGirl;
+    using Qud.API;
     using XRL.Rules;
     using XRL.World.AI.GoalHandlers;
     using XRL.World.CleverGirl;
@@ -42,6 +43,24 @@ namespace XRL.World.Parts.CleverGirl
                 return;
             }
 
+            var currentShield = ParentObject.Body.GetShield();
+            if (ParentObject.HasSkill("Shield")) {
+                Utility.MaybeLog("Considering shields");
+                // manually compare to our current best shield since the WornOn's might not match
+                if (findBetterThing("Shield",
+                                    go => go.HasTag("Shield") && Brain.CompareShields(go, currentShield, ParentObject) < 0,
+                                    new ShieldSorter(ParentObject),
+                                    (part, thing) => !part.Primary && part.Type == thing.GetPart<Shield>().WornOn)) {
+                    // hack because the game's reequip logic doesn't consider better shields
+                    if (null != currentShield) {
+                        if (currentShield.TryUnequip()) {
+                            EquipmentAPI.DropObject(currentShield);
+                        };
+                    }
+                    return;
+                }
+            }
+
             // Armor
             if (findBetterThing("Armor",
                                 _ => true,
@@ -54,7 +73,9 @@ namespace XRL.World.Parts.CleverGirl
             if (findBetterThing("MeleeWeapon",
                                 go => go.HasTag("MeleeWeapon"),
                                 new Brain.WeaponSorter(ParentObject),
-                                (part, thing) => !part.Primary && part.Type == thing.GetPart<MeleeWeapon>().Slot)) {
+                                (part, thing) => !part.Primary &&
+                                                 part.Equipped != currentShield &&
+                                                 part.Type == thing.GetPart<MeleeWeapon>().Slot)) {
                 return;
             }
         }
@@ -120,6 +141,20 @@ namespace XRL.World.Parts.CleverGirl
             ParentObject.pBrain.Think("I want that " + item.DisplayNameOnlyStripped);
             ParentObject.pBrain.PushGoal(new GoPickupGear(item));
             ParentObject.pBrain.PushGoal(new MoveTo(item.CurrentCell));
+        }
+
+        // why doesn't Brain have this? 😭
+        class ShieldSorter : Comparer<GameObject> {
+            private GameObject POV;
+            private bool Reverse;
+
+            public ShieldSorter(GameObject POV) => this.POV = POV;
+
+            public ShieldSorter(GameObject POV, bool Reverse)
+                : this(POV)
+                => this.Reverse = Reverse;
+
+            public override int Compare(GameObject o1, GameObject o2) => Brain.CompareShields(o1, o2, this.POV) * (this.Reverse ? -1 : 1);
         }
     }
 }
