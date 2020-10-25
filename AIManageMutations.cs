@@ -22,7 +22,7 @@ namespace XRL.World.Parts.CleverGirl
 
         public bool WantNewMutations = false;
         public int NewMutationSavings = 0;
-        public Random MutationsRandom = Stat.GetSeededRandomGenerator("Kizby_CleverGirl_Mutations");
+        public static Random MutationsRandom = Stat.GetSeededRandomGenerator("Kizby_CleverGirl_Mutations");
 
         public override bool WantEvent(int ID, int cascade)
         {
