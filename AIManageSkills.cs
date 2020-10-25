@@ -87,7 +87,8 @@ namespace XRL.World.Parts.CleverGirl
             return true;
         }
 
-        public void Manage() {
+        public bool Manage() {
+            var changed = false;
             var skills = new List<string>(SkillFactory.Factory.SkillList.Count);
             var strings = new List<string>(SkillFactory.Factory.SkillList.Count);
             var keys = new List<char>(SkillFactory.Factory.SkillList.Count);
@@ -118,7 +119,11 @@ namespace XRL.World.Parts.CleverGirl
                                                 Intro: ("What skills should " + ParentObject.the + ParentObject.ShortDisplayName + " learn?"),
                                                 AllowEscape: true);
                 if (index < 0) {
-                    return;
+                    if (0 == LearningSkills.Count) {
+                        // don't bother listening if there's nothing to hear
+                        ParentObject.RemovePart<AIManageSkills>();
+                    }
+                    return changed;
                 }
                 switch (strings[index][0]) {
                     case '*':
@@ -128,11 +133,13 @@ namespace XRL.World.Parts.CleverGirl
                         // start learning this skill
                         LearningSkills.Add(skills[index]);
                         strings[index] = '+' + strings[index].Substring(1);
+                        changed = true;
                         break;
                     case '+':
                         // stop learning this skill
                         LearningSkills.Remove(skills[index]);
                         strings[index] = '-' + strings[index].Substring(1);
+                        changed = true;
                         break;
                 }
             }
