@@ -134,13 +134,13 @@ namespace XRL.World.Parts.CleverGirl
                                                                levelAdjust < 0 ? "{{R|-" + (-levelAdjust) + "}}" :
                                                                                  "{{G|+" + levelAdjust + "}}";
                     strings.Add(prefix + " " + Mutation.Name + " (" + Mutation.BaseLevel + levelAdjustString + ")");
-                    keys.Add((char)('a' + keys.Count));
+                    keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
                 }
             }
             {
                 var prefix = ParentObject.GetPart<Mutations>().GetMutatePool().Count == 0 ? "*" : WantNewMutations ? "+" : "-";
                 strings.Add(prefix + " Acquire new mutations");
-                keys.Add((char)('a' + keys.Count));
+                keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
             }
 
             while (true) {
