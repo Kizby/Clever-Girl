@@ -107,7 +107,7 @@ namespace XRL.World.Parts.CleverGirl
                 }
                 var prefix = havePowers == totalPowers ? "*" : LearningSkills.Contains(Skill.Name) ? "+" : "-";
                 strings.Add(prefix + " " + Skill.Name + ": " + havePowers + "/" + totalPowers);
-                keys.Add((char)('a' + keys.Count));
+                keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
             }
 
             while (true) {
