@@ -133,7 +133,7 @@ namespace XRL.World.Parts.CleverGirl
                     var levelAdjustString = levelAdjust == 0 ? "" :
                                                                levelAdjust < 0 ? "{{R|-" + (-levelAdjust) + "}}" :
                                                                                  "{{G|+" + levelAdjust + "}}";
-                    strings.Add(prefix + " " + Mutation.Name + " (" + Mutation.BaseLevel + levelAdjustString + ")");
+                    strings.Add(prefix + " " + Mutation.DisplayName + " (" + Mutation.BaseLevel + levelAdjustString + ")");
                     keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
                 }
             }
