@@ -4,7 +4,6 @@ namespace XRL.World.Parts.CleverGirl
 {
     using System.Collections.Generic;
     using System.Linq;
-    using XRL.Rules;
     using XRL.UI;
     using XRL.World.CleverGirl;
     using XRL.World.Skills;
@@ -28,8 +27,6 @@ namespace XRL.World.Parts.CleverGirl
             "Fasting Way",
             "Mind over Body",
         };
-
-        Random random = Stat.GetSeededRandomGenerator("Kizby_CleverGirl");
 
         public List<string> LearningSkills = new List<string>();
 
@@ -79,7 +76,7 @@ namespace XRL.World.Parts.CleverGirl
                 return true;
             }
 
-            var which = pool.GetRandomElement(random);
+            var which = pool.GetRandomElement(Utility.Random);
             ParentObject.AddSkill(which.Item1);
             E.Stat.Penalty += which.Item2;
 
