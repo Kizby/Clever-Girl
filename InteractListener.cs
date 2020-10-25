@@ -30,17 +30,21 @@ namespace XRL.World.Parts.CleverGirl
         }
 
         public override bool HandleEvent(InventoryActionEvent E) {
-            if (E.Command == AIPickupGear.ENABLE.Command) {
+            if (E.Command == AIPickupGear.ENABLE.Command && ParentObject.CheckCompanionDirection(E.Item)) {
                 E.Item.RequirePart<AIPickupGear>();
                 // Anyone picking up gear should know how to unburden themself
                 E.Item.RequirePart<AIUnburden>();
+                ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Enable Gear Pickup");
             }
-            if (E.Command == AIPickupGear.DISABLE.Command) {
+            if (E.Command == AIPickupGear.DISABLE.Command && ParentObject.CheckCompanionDirection(E.Item)) {
                 E.Item.RemovePart<AIPickupGear>();
                 E.Item.RemovePart<AIUnburden>();
+                ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Disable Gear Pickup");
             }
-            if (E.Command == AIManageSkills.ACTION.Command) {
-                E.Item.RequirePart<AIManageSkills>().Manage();
+            if (E.Command == AIManageSkills.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (E.Item.RequirePart<AIManageSkills>().Manage()) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Skills");
+                }
                 E.RequestInterfaceExit();
             }
             return true;
