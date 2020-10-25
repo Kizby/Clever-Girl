@@ -20,6 +20,7 @@ namespace XRL.World.Parts.CleverGirl
                     var actions = new List<Utility.InventoryAction>{
                         E.Object.HasPart("AIPickupGear") ? AIPickupGear.DISABLE : AIPickupGear.ENABLE,
                         AIManageSkills.ACTION,
+                        AIManageMutations.ACTION,
                     };
                     foreach (var action in actions) {
                         E.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
@@ -44,6 +45,12 @@ namespace XRL.World.Parts.CleverGirl
             if (E.Command == AIManageSkills.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
                 if (E.Item.RequirePart<AIManageSkills>().Manage()) {
                     ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Skills");
+                }
+                E.RequestInterfaceExit();
+            }
+            if (E.Command == AIManageMutations.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (E.Item.RequirePart<AIManageMutations>().Manage()) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Mutations");
                 }
                 E.RequestInterfaceExit();
             }
