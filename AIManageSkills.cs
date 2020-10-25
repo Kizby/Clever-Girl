@@ -119,6 +119,10 @@ namespace XRL.World.Parts.CleverGirl
                                                 Intro: ("What skills should " + ParentObject.the + ParentObject.ShortDisplayName + " learn?"),
                                                 AllowEscape: true);
                 if (index < 0) {
+                    if (0 == LearningSkills.Count) {
+                        // don't bother listening if there's nothing to hear
+                        ParentObject.RemovePart<AIManageSkills>();
+                    }
                     return changed;
                 }
                 switch (strings[index][0]) {
