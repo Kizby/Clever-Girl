@@ -4,7 +4,6 @@ namespace XRL.World.Parts.CleverGirl
 {
     using System.Collections.Generic;
     using System.Linq;
-    using XRL.Rules;
     using XRL.UI;
     using XRL.World.CleverGirl;
     using XRL.World.Parts.Mutation;
@@ -22,7 +21,6 @@ namespace XRL.World.Parts.CleverGirl
 
         public bool WantNewMutations = false;
         public int NewMutationSavings = 0;
-        public static Random MutationsRandom = Stat.GetSeededRandomGenerator("Kizby_CleverGirl_Mutations");
 
         public override bool WantEvent(int ID, int cascade)
         {
@@ -58,20 +56,21 @@ namespace XRL.World.Parts.CleverGirl
                 return true;
             }
 
-            var which = pool.GetRandomElement(Utility.Random);
+            var Random = Utility.Random(this);
+            var which = pool.GetRandomElement(Random);
             if (null == which) {
                 ++NewMutationSavings;
                 if (NewMutationSavings >= 4) {
                     Utility.MaybeLog("Learning a new mutation");
                     // learn a new mutation
                     var mutations = ParentObject.GetPart<Mutations>();
-                    var possibleMutations = mutations.GetMutatePool().Shuffle(MutationsRandom);
+                    var possibleMutations = mutations.GetMutatePool().Shuffle(Random);
                     var valuableMutations = possibleMutations.Where(m => m.Cost > 1);
                     var cheapMutations = possibleMutations.Where(m => m.Cost <= 1);
                     var choiceCount = 3;
                     var choices = new List<BaseMutation>(choiceCount);
                     var strings = new List<String>(choiceCount);
-                    var newPartIndex = ParentObject.IsChimera() ? MutationsRandom.Next(choiceCount) : -1;
+                    var newPartIndex = ParentObject.IsChimera() ? Random.Next(choiceCount) : -1;
                     // only offer valuable mutations if possible, but backfill with cheap ones
                     foreach (var mutationType in valuableMutations.Concat(cheapMutations)) {
                         var mutation = mutationType.CreateInstance();
@@ -103,7 +102,7 @@ namespace XRL.World.Parts.CleverGirl
                     var result = choices[choice];
                     if (result.GetVariants() != null) {
                         // let followers choose their variant 😄
-                        result.SetVariant(MutationsRandom.Next(result.GetVariants().Count));
+                        result.SetVariant(Random.Next(result.GetVariants().Count));
                     }
                     var mutationIndex = mutations.AddMutation(result, 1);
                     this.DidX("gain", mutations.MutationList[mutationIndex].DisplayName, "!", UsePopup: true, ColorAsGoodFor:ParentObject);

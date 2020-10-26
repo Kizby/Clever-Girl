@@ -76,7 +76,7 @@ namespace XRL.World.Parts.CleverGirl
                 return true;
             }
 
-            var which = pool.GetRandomElement(Utility.Random);
+            var which = pool.GetRandomElement(Utility.Random(this));
             ParentObject.AddSkill(which.Item1);
             E.Stat.Penalty += which.Item2;
 
