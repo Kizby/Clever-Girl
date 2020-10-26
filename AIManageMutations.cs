@@ -31,7 +31,13 @@ namespace XRL.World.Parts.CleverGirl
             if ("MP" != E.Name) {
                 return true;
             }
+
             var budget = E.NewValue - NewMutationSavings;
+            if (budget <= 0) {
+                // nothing to do
+                return true;
+            }
+
             var pool = new List<BaseMutation>();
             var toDrop = new List<string>();
             foreach (var mutationName in FocusingMutations) {
