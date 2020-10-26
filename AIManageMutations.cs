@@ -62,16 +62,20 @@ namespace XRL.World.Parts.CleverGirl
             if (null == which) {
                 ++NewMutationSavings;
                 if (NewMutationSavings >= 4) {
+                    Utility.MaybeLog("Learning a new mutation");
                     // learn a new mutation
                     var mutations = ParentObject.GetPart<Mutations>();
                     var possibleMutations = mutations.GetMutatePool();
                     var choiceCount = 3;
                     var choices = new List<BaseMutation>(choiceCount);
                     var strings = new List<String>(choiceCount);
+                    var newPartIndex = ParentObject.IsChimera() ? MutationsRandom.Next(choiceCount) : -1;
                     foreach (var mutationType in possibleMutations.InRandomOrder(MutationsRandom)) {
                         var mutation = mutationType.CreateInstance();
+                        var newPartString = choices.Count != newPartIndex ? "" : "{{G| + grow a new body part}}";
                         choices.Add(mutation);
-                        strings.Add("{{W|" + mutation.DisplayName + "}}  {{y|- " + mutation.GetDescription() + "}}\n" + mutation.GetLevelText(1));
+                        strings.Add("{{W|" + mutation.DisplayName + "}} " + newPartString +
+                                    " {{y|- " + mutation.GetDescription() + "}}\n" + mutation.GetLevelText(1));
                         if (choices.Count == choiceCount) {
                             break;
                         }
@@ -100,6 +104,9 @@ namespace XRL.World.Parts.CleverGirl
                     }
                     var mutationIndex = mutations.AddMutation(result, 1);
                     this.DidX("gain", mutations.MutationList[mutationIndex].DisplayName, "!", UsePopup: true);
+                    if (choice == newPartIndex) {
+                        mutations.AddChimericBodyPart();
+                    }
 
                     NewMutationSavings -= 4;
                     ParentObject.UseMP(4);
