@@ -21,6 +21,7 @@ namespace XRL.World.Parts.CleverGirl
 
         public bool WantNewMutations = false;
         public int NewMutationSavings = 0;
+        private Dictionary<string, int> RapidLevels = new Dictionary<string, int>();
 
         public override bool WantEvent(int ID, int cascade)
         {
@@ -128,8 +129,56 @@ namespace XRL.World.Parts.CleverGirl
         }
 
         public override void Register(GameObject obj) {
-            obj.RegisterPartEvent(this, "SyncMutationsLevels");
+            obj.RegisterPartEvent(this, "SyncMutationLevels");
+            CacheRapidLevels();
             base.Register(obj);
+        }
+
+        public override bool FireEvent(Event E) {
+            if (E.ID == "SyncMutationLevels") {
+                string whichKey =  null;
+                var difference = 0;
+                foreach(var prop in ParentObject.IntProperty) {
+                    var cached = RapidLevels.GetValueOrDefault(prop.Key, 0);
+                    if (prop.Key.StartsWith("RapidLevel_") && cached != prop.Value) {
+                        // this was RapidLevel'd when we weren't looking
+                        whichKey = prop.Key;
+                        difference = prop.Value - cached;
+                        break;
+                    }
+                }
+                if (null != whichKey) {
+                    // remove this RapidLevel...
+                    ParentObject.ModIntProperty(whichKey, -difference);
+
+                    // ... and add an appropriate one
+                    var mutations = ParentObject.GetPart<Mutations>();
+                    var allPhysicalMutations = mutations.MutationList.Where(m => m.IsPhysical() && m.CanLevel()).ToList().Shuffle(Utility.Random(this));
+                    var instead = allPhysicalMutations.FirstOrDefault(m => FocusingMutations.Contains(m.Name)) ??
+                                  allPhysicalMutations.First();
+                    var insteadKey = "RapidLevel_" + instead.GetMutationClass();
+                    DidX("rapidly advance",
+                         instead.DisplayName + " by " + Language.Grammar.Cardinal(difference) + " ranks to rank " + (instead.Level + difference),
+                         "!", ColorAsGoodFor:ParentObject);
+                    ParentObject.ModIntProperty(insteadKey, difference);
+
+                    Utility.MaybeLog("Moved a RapidLevel from " + whichKey + " to " + instead);
+                    RapidLevels[insteadKey] = ParentObject.IntProperty[insteadKey];
+
+                    // Re-fire the event to make sure anything else listening catches it
+                    ParentObject.FireEvent("SyncMutationLevels");
+                    return false; // This event isn't needed anymore
+                }
+            }
+            return base.FireEvent(E);
+        }
+
+        private void CacheRapidLevels() {
+            foreach (var prop in ParentObject.IntProperty) {
+                if (prop.Key.StartsWith("RapidLevel_")) {
+                    RapidLevels[prop.Key] = prop.Value;
+                }
+            }
         }
 
         public bool Manage() {
