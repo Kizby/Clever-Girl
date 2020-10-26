@@ -65,14 +65,17 @@ namespace XRL.World.Parts.CleverGirl
                     Utility.MaybeLog("Learning a new mutation");
                     // learn a new mutation
                     var mutations = ParentObject.GetPart<Mutations>();
-                    var possibleMutations = mutations.GetMutatePool();
+                    var possibleMutations = mutations.GetMutatePool().Shuffle(MutationsRandom);
+                    var valuableMutations = possibleMutations.Where(m => m.Cost > 1);
+                    var cheapMutations = possibleMutations.Where(m => m.Cost <= 1);
                     var choiceCount = 3;
                     var choices = new List<BaseMutation>(choiceCount);
                     var strings = new List<String>(choiceCount);
                     var newPartIndex = ParentObject.IsChimera() ? MutationsRandom.Next(choiceCount) : -1;
-                    foreach (var mutationType in possibleMutations.InRandomOrder(MutationsRandom)) {
+                    // only offer valuable mutations if possible, but backfill with cheap ones
+                    foreach (var mutationType in valuableMutations.Concat(cheapMutations)) {
                         var mutation = mutationType.CreateInstance();
-                        var newPartString = choices.Count != newPartIndex ? "" : "{{G| + grow a new body part}}";
+                        var newPartString = choices.Count != newPartIndex ? "" : "{{G|+ grow a new body part}}";
                         choices.Add(mutation);
                         strings.Add("{{W|" + mutation.DisplayName + "}} " + newPartString +
                                     " {{y|- " + mutation.GetDescription() + "}}\n" + mutation.GetLevelText(1));
@@ -103,7 +106,7 @@ namespace XRL.World.Parts.CleverGirl
                         result.SetVariant(MutationsRandom.Next(result.GetVariants().Count));
                     }
                     var mutationIndex = mutations.AddMutation(result, 1);
-                    this.DidX("gain", mutations.MutationList[mutationIndex].DisplayName, "!", UsePopup: true);
+                    this.DidX("gain", mutations.MutationList[mutationIndex].DisplayName, "!", UsePopup: true, ColorAsGoodFor:ParentObject);
                     if (choice == newPartIndex) {
                         mutations.AddChimericBodyPart();
                     }
