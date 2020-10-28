@@ -216,6 +216,11 @@ namespace XRL.World.Parts.CleverGirl
                     if (0 == FocusingMutations.Count && !WantNewMutations) {
                         // don't bother listening if there's nothing to hear
                         ParentObject.RemovePart<AIManageMutations>();
+                    } else {
+                        // spend any MP we have if relevant
+                        if (ParentObject.Statistics["MP"].Value > NewMutationSavings) {
+                            ParentObject.UseMP(0);
+                        }
                     }
                     return changed;
                 }
