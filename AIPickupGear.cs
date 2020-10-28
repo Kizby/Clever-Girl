@@ -108,10 +108,14 @@ namespace XRL.World.Parts.CleverGirl
                 return false;
             }
 
+            // consider items in our inventory too in case PerformReequip isn't equipping something
+            // we think it should
+            things.AddRange(ParentObject.Inventory.Objects.Where(whichThings));
             things.Sort(thingComparer);
 
             var noEquip = ParentObject.GetPropertyOrTag("NoEquip");
             var noEquipList = string.IsNullOrEmpty(noEquip) ? null : new List<string>(noEquip.CachedCommaExpansion());
+            var ignoreParts = new List<BodyPart>();
 
             foreach (var thing in things) {
                 if (noEquipList?.Contains(thing.Blueprint) ?? false) {
@@ -121,18 +125,24 @@ namespace XRL.World.Parts.CleverGirl
                     continue;
                 }
                 foreach (var bodyPart in allBodyParts) {
-                    if (!whichBodyParts(bodyPart, thing)) {
+                    if (!whichBodyParts(bodyPart, thing) || ignoreParts.Contains(bodyPart)) {
                         continue;
                     }
                     if (!(bodyPart.Equipped?.FireEvent("CanBeUnequipped") ?? true)) {
                         Utility.MaybeLog("Can't unequip the " + bodyPart.Equipped.DisplayNameOnlyStripped);
                         continue;
                     }
-                    if (thing.WeightEach - (bodyPart.Equipped?.Weight ?? 0) > capacity) {
+                    if (thing.pPhysics.InInventory != ParentObject && thing.WeightEach - (bodyPart.Equipped?.Weight ?? 0) > capacity) {
                         Utility.MaybeLog("No way to equip " + thing.DisplayNameOnlyStripped + " on " + bodyPart.Name + " without being overburdened");
                         continue;
                     }
                     if (thingComparer.Compare(thing, bodyPart.Equipped) < 0) {
+                        if (thing.pPhysics.InInventory == ParentObject) {
+                            Utility.MaybeLog(thing.DisplayNameOnlyStripped + " in my inventory is already better than my " +
+                                (bodyPart.Equipped?.DisplayNameOnlyStripped ?? "nothing"));
+                            ignoreParts.Add(bodyPart);
+                            continue;
+                        }
                         GoGet(thing);
                         return true;
                     }
