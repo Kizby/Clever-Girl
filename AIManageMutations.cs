@@ -1,4 +1,5 @@
 using System;
+using HarmonyLib;
 
 namespace XRL.World.Parts.CleverGirl
 {
@@ -9,6 +10,7 @@ namespace XRL.World.Parts.CleverGirl
     using XRL.World.Parts.Mutation;
 
     [Serializable]
+    [HarmonyPatch]
     public class AIManageMutations : IPart {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction{
             Name = "Clever Girl - Manage Mutations",
@@ -21,7 +23,6 @@ namespace XRL.World.Parts.CleverGirl
 
         public bool WantNewMutations = false;
         public int NewMutationSavings = 0;
-        private Dictionary<string, int> RapidLevels = new Dictionary<string, int>();
 
         public override bool WantEvent(int ID, int cascade)
         {
@@ -128,57 +129,36 @@ namespace XRL.World.Parts.CleverGirl
             return true;
         }
 
-        public override void Register(GameObject obj) {
-            obj.RegisterPartEvent(this, "SyncMutationLevels");
-            CacheRapidLevels();
-            base.Register(obj);
-        }
+        [HarmonyPrefix]
+        [HarmonyPatch(typeof(BaseMutation), "RapidLevel")]
+        static void RapidLevelInstead(int amount, ref BaseMutation __instance) {
+            // check if we're managing this creature
+            var manageMutations = __instance.ParentObject.GetPart<AIManageMutations>();
 
-        public override bool FireEvent(Event E) {
-            if (E.ID == "SyncMutationLevels") {
-                string whichKey =  null;
-                var difference = 0;
-                foreach(var prop in ParentObject.IntProperty) {
-                    var cached = RapidLevels.GetValueOrDefault(prop.Key, 0);
-                    if (prop.Key.StartsWith("RapidLevel_") && cached != prop.Value) {
-                        // this was RapidLevel'd when we weren't looking
-                        whichKey = prop.Key;
-                        difference = prop.Value - cached;
-                        break;
-                    }
-                }
-                if (null != whichKey) {
-                    // remove this RapidLevel...
-                    ParentObject.ModIntProperty(whichKey, -difference);
-
-                    // ... and add an appropriate one
-                    var mutations = ParentObject.GetPart<Mutations>();
-                    var allPhysicalMutations = mutations.MutationList.Where(m => m.IsPhysical() && m.CanLevel()).ToList().Shuffle(Utility.Random(this));
-                    var instead = allPhysicalMutations.FirstOrDefault(m => FocusingMutations.Contains(m.Name)) ??
-                                  allPhysicalMutations.First();
-                    var insteadKey = "RapidLevel_" + instead.GetMutationClass();
-                    DidX("rapidly advance",
-                         instead.DisplayName + " by " + Language.Grammar.Cardinal(difference) + " ranks to rank " + (instead.Level + difference),
-                         "!", ColorAsGoodFor:ParentObject);
-                    ParentObject.ModIntProperty(insteadKey, difference);
-
-                    Utility.MaybeLog("Moved a RapidLevel from " + whichKey + " to " + instead);
-                    RapidLevels[insteadKey] = ParentObject.IntProperty[insteadKey];
-
-                    // Re-fire the event to make sure anything else listening catches it
-                    ParentObject.FireEvent("SyncMutationLevels");
-                    return false; // This event isn't needed anymore
-                }
+            if (null == manageMutations) {
+                // do nothing otherwise
+                return;
             }
-            return base.FireEvent(E);
-        }
 
-        private void CacheRapidLevels() {
-            foreach (var prop in ParentObject.IntProperty) {
-                if (prop.Key.StartsWith("RapidLevel_")) {
-                    RapidLevels[prop.Key] = prop.Value;
-                }
-            }
+            var whichKey = "RapidLevel_" + __instance.GetMutationClass();
+
+            // pre-emptively reduce by the levels this mutation will gain
+            __instance.ParentObject.ModIntProperty(whichKey, -amount);
+
+            // pick an appropriate mutation instead
+            var mutations = __instance.ParentObject.GetPart<Mutations>();
+            var allPhysicalMutations = mutations.MutationList.Where(m => m.IsPhysical() && m.CanLevel())
+                                                             .ToList()
+                                                             .Shuffle(Utility.Random(manageMutations));
+            var instead = allPhysicalMutations.FirstOrDefault(m => manageMutations.FocusingMutations.Contains(m.Name)) ??
+                          allPhysicalMutations.First();
+            var insteadKey = "RapidLevel_" + instead.GetMutationClass();
+            manageMutations.DidX("rapidly advance",
+                                 instead.DisplayName + " by " + Language.Grammar.Cardinal(amount) + " ranks to rank " + (instead.Level + amount),
+                                 "!", ColorAsGoodFor:__instance.ParentObject);
+            __instance.ParentObject.ModIntProperty(insteadKey, amount);
+
+            Utility.MaybeLog("Moved a RapidLevel from " + whichKey + " to " + instead);
         }
 
         public bool Manage() {
