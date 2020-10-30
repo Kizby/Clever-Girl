@@ -40,7 +40,8 @@ namespace XRL.World.Parts.CleverGirl
             Utility.MaybeLog("Turn " + TurnNumber);
 
             // Primary weapon
-            if (findBetterThing("MeleeWeapon",
+            if (ParentObject.IsCombatObject() &&
+                findBetterThing("MeleeWeapon",
                                 go => go.HasTag("MeleeWeapon"),
                                 new Brain.WeaponSorter(ParentObject),
                                 (part, thing) => part.Primary && part.Type == thing.GetPart<MeleeWeapon>().Slot)) {
@@ -74,7 +75,8 @@ namespace XRL.World.Parts.CleverGirl
             }
 
             // Additional weapons
-            if (findBetterThing("MeleeWeapon",
+            if (ParentObject.IsCombatObject() &&
+                findBetterThing("MeleeWeapon",
                                 go => go.HasTag("MeleeWeapon"),
                                 new Brain.WeaponSorter(ParentObject),
                                 (part, thing) => !part.Primary &&
