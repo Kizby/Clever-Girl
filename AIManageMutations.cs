@@ -208,8 +208,8 @@ namespace XRL.World.Parts.CleverGirl
                 foreach (var Mutation in haveMutations.MutationList) {
                     mutations.Add(Mutation.Name);
                     // physical mutations can RapidLevel, so can always be selected
-                    var prefix = (Mutation.BaseLevel == Mutation.GetMaxLevel() && !Mutation.IsPhysical()) ?
-                                    "*" :
+                    var canFocus = Mutation.CanLevel() && (Mutation.BaseLevel < Mutation.GetMaxLevel() || Mutation.IsPhysical());
+                    var prefix = !canFocus ? "*" :
                                              FocusingMutations.Contains(Mutation.Name) ? "+" : "-";
                     var levelAdjust = Mutation.Level - Mutation.BaseLevel;
                     var levelAdjustString = levelAdjust == 0 ? "" :
