@@ -17,6 +17,10 @@ namespace XRL.World.Parts.CleverGirl
             {
                 if (E.Object.IsPlayerLed() && !E.Object.IsPlayer())
                 {
+                    if (E.Object.HasPart(typeof(CannotBeInfluenced))) {
+                        // don't manage someone who can't be managed
+                        return true;
+                    }
                     var actions = new List<Utility.InventoryAction>{
                         E.Object.HasPart("AIPickupGear") ? AIPickupGear.DISABLE : AIPickupGear.ENABLE,
                         AIManageSkills.ACTION,
