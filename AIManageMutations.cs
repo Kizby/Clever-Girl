@@ -24,6 +24,34 @@ namespace XRL.World.Parts.CleverGirl
         public bool WantNewMutations = false;
         public int NewMutationSavings = 0;
 
+        public static HashSet<string> CombatMutations = new HashSet<string>{
+            "Corrosive Gas Generation",
+            "Electromagnetic Pulse",
+            "Flaming Ray",
+            "Freezing Ray",
+            "Horns",
+            "Quills",
+            "Sleep Gas Generation",
+            "Slime Glands",
+            "Spinnerets",
+            "Stinger (Confusing Venom)",
+            "Stinger (Paralyzing Venom)",
+            "Stinger (Poisoning Venom)",
+            "Burgeoning",
+            "Confusion",
+            "Cryokinesis",
+            "Disintegration",
+            "Force Wall",
+            "Pyrokinesis",
+            "Space-Time Vortex",
+            "Stunning Force",
+            "Sunder Mind",
+            "Syphon Vim",
+            "Teleport Other",
+            "Time Dilation",
+            "Temporal Fugue",
+        };
+
         public override bool WantEvent(int ID, int cascade)
         {
             return ID == StatChangeEvent.ID;
@@ -72,7 +100,13 @@ namespace XRL.World.Parts.CleverGirl
                     Utility.MaybeLog("Learning a new mutation");
                     // learn a new mutation
                     var mutations = ParentObject.GetPart<Mutations>();
-                    var possibleMutations = mutations.GetMutatePool().Shuffle(Random);
+                    var possibleMutations = mutations.GetMutatePool()
+                                                     .Shuffle(Random);
+                    if (!ParentObject.IsCombatObject()) {
+                        // don't offer combat mutations to NoCombat companions
+                        possibleMutations = possibleMutations.Where(m => !CombatMutations.Contains(m.DisplayName))
+                                                             .ToList();
+                    }
                     var valuableMutations = possibleMutations.Where(m => m.Cost > 1);
                     var cheapMutations = possibleMutations.Where(m => m.Cost <= 1);
                     var choiceCount = 3;
