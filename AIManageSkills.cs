@@ -18,7 +18,7 @@ namespace XRL.World.Parts.CleverGirl
         };
 
         // these skills don't make sense for followers
-        static string[] IgnoreSkills = {
+        public static HashSet<string> IgnoreSkills = new HashSet<string>{
             "Cooking and Gathering",
             "Customs and Folklore",
             "Tinkering",
@@ -26,6 +26,23 @@ namespace XRL.World.Parts.CleverGirl
             "Set Limb",
             "Fasting Way",
             "Mind over Body",
+        };
+
+        public static HashSet<string> CombatSkills = new HashSet<string>{
+            "Axe",
+            "Bow and Rifle",
+            "Cudgel",
+            "Dual Wield",
+            "Heavy Weapon",
+            "Long Blade",
+            "Pistol",
+            "Short Blade",
+            "Menacing Stare",
+            "Intimidate",
+            "Berate",
+            "Shield Slam",
+            "Deft Throwing",
+            "Charge",
         };
 
         public List<string> LearningSkills = new List<string>();
@@ -93,11 +110,17 @@ namespace XRL.World.Parts.CleverGirl
                 if (IgnoreSkills.Contains(Skill.Name)) {
                     continue;
                 }
+                if (!ParentObject.IsCombatObject() && CombatSkills.Contains(Skill.Name)) {
+                    continue;
+                }
                 skills.Add(Skill.Name);
                 var havePowers = 0;
                 var totalPowers = 0;
                 foreach (var Power in Skill.Powers.Values) {
                     if (IgnoreSkills.Contains(Power.Name)) {
+                        continue;
+                    }
+                    if (!ParentObject.IsCombatObject() && CombatSkills.Contains(Power.Name)) {
                         continue;
                     }
                     if (ParentObject.HasSkill(Power.Class)) {
