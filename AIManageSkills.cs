@@ -53,10 +53,15 @@ namespace XRL.World.Parts.CleverGirl
         }
 
         public override bool HandleEvent(StatChangeEvent E) {
-            if ("SP" != E.Name) {
-                return true;
+            if ("SP" == E.Name) {
+                SpendSP();
             }
-            var budget = E.NewValue;
+            return true;
+        }
+
+        public void SpendSP() {
+            var stat = ParentObject.Statistics["SP"];
+            var budget = stat.Value;
             var pool = new List<Tuple<string, int, string>>();
             var toDrop = new List<string>();
             foreach (var skillName in LearningSkills) {
@@ -88,17 +93,13 @@ namespace XRL.World.Parts.CleverGirl
             // drop skills that are already complete
             LearningSkills = LearningSkills.Except(toDrop).ToList();
 
-            if (0 == pool.Count) {
-                // nothing to learn
-                return true;
+            if (0 < pool.Count) {
+                var which = pool.GetRandomElement(Utility.Random(this));
+                ParentObject.AddSkill(which.Item1);
+                stat.Penalty += which.Item2; // triggers a StatChangeEvent which will call this again until all points are spent
+
+                this.DidX("learn", which.Item3, "!", ColorAsGoodFor: this.ParentObject);
             }
-
-            var which = pool.GetRandomElement(Utility.Random(this));
-            ParentObject.AddSkill(which.Item1);
-            E.Stat.Penalty += which.Item2;
-
-            this.DidX("learn", which.Item3, "!", ColorAsGoodFor: this.ParentObject);
-            return true;
         }
 
         public bool Manage() {
@@ -142,6 +143,9 @@ namespace XRL.World.Parts.CleverGirl
                     if (0 == LearningSkills.Count) {
                         // don't bother listening if there's nothing to hear
                         ParentObject.RemovePart<AIManageSkills>();
+                    } else {
+                        // spend any skill points we have saved up
+                        SpendSP();
                     }
                     return changed;
                 }

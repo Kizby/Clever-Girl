@@ -58,14 +58,18 @@ namespace XRL.World.Parts.CleverGirl
         }
 
         public override bool HandleEvent(StatChangeEvent E) {
-            if ("MP" != E.Name) {
-                return true;
+            if ("MP" == E.Name) {
+                SpendMP();
             }
+            return true;
+        }
 
-            var budget = E.NewValue - NewMutationSavings;
+        public void SpendMP() {
+            var stat = ParentObject.Statistics["MP"];
+            var budget = stat.Value - NewMutationSavings;
             if (budget <= 0) {
                 // nothing to do
-                return true;
+                return;
             }
 
             var pool = new List<BaseMutation>();
@@ -89,14 +93,16 @@ namespace XRL.World.Parts.CleverGirl
 
             if (0 == pool.Count) {
                 // nothing to learn
-                return true;
+                return;
             }
 
             var Random = Utility.Random(this);
             var which = pool.GetRandomElement(Random);
             if (null == which) {
                 ++NewMutationSavings;
-                if (NewMutationSavings >= 4) {
+                if (NewMutationSavings < 4) {
+                    SpendMP(); // spend any additional MP if relevant
+                } else {
                     Utility.MaybeLog("Learning a new mutation");
                     // learn a new mutation
                     var mutations = ParentObject.GetPart<Mutations>();
@@ -128,8 +134,8 @@ namespace XRL.World.Parts.CleverGirl
                         WantNewMutations = false;
                         NewMutationSavings = 0;
                         // spend our points if we can
-                        ParentObject.UseMP(0);
-                        return true;
+                        SpendMP();
+                        return;
                     }
 
                     var choice = -1;
@@ -159,8 +165,6 @@ namespace XRL.World.Parts.CleverGirl
                 ParentObject.GetPart<Mutations>().LevelMutation(which, which.BaseLevel + 1);
                 ParentObject.UseMP(1);
             }
-
-            return true;
         }
 
         [HarmonyPrefix]
@@ -206,7 +210,7 @@ namespace XRL.World.Parts.CleverGirl
                     // physical mutations can RapidLevel, so can always be selected
                     var prefix = (Mutation.BaseLevel == Mutation.GetMaxLevel() && !Mutation.IsPhysical()) ?
                                     "*" :
-                                    FocusingMutations.Contains(Mutation.Name) ? "+" : "-";
+                                             FocusingMutations.Contains(Mutation.Name) ? "+" : "-";
                     var levelAdjust = Mutation.Level - Mutation.BaseLevel;
                     var levelAdjustString = levelAdjust == 0 ? "" :
                                                                levelAdjust < 0 ? "{{R|-" + (-levelAdjust) + "}}" :
@@ -232,9 +236,7 @@ namespace XRL.World.Parts.CleverGirl
                         ParentObject.RemovePart<AIManageMutations>();
                     } else {
                         // spend any MP we have if relevant
-                        if (ParentObject.Statistics["MP"].Value > NewMutationSavings) {
-                            ParentObject.UseMP(0);
-                        }
+                        SpendMP();
                     }
                     return changed;
                 }
