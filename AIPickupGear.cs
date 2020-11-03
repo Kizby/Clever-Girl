@@ -44,7 +44,7 @@ namespace XRL.World.Parts.CleverGirl
                 findBetterThing("MeleeWeapon",
                                 go => go.HasTag("MeleeWeapon"),
                                 new Brain.WeaponSorter(ParentObject),
-                                (part, thing) => part.Primary && part.Type == thing.GetPart<MeleeWeapon>().Slot)) {
+                                (part, thing) => part.Primary && part.Type == thing.GetPart<MeleeWeapon>()?.Slot)) {
                 return;
             }
 
@@ -55,7 +55,7 @@ namespace XRL.World.Parts.CleverGirl
                 if (findBetterThing("Shield",
                                     go => go.HasTag("Shield") && Brain.CompareShields(go, currentShield, ParentObject) < 0,
                                     new ShieldSorter(ParentObject),
-                                    (part, thing) => !part.Primary && part.Type == thing.GetPart<Shield>().WornOn)) {
+                                    (part, thing) => !part.Primary && part.Type == thing.GetPart<Shield>()?.WornOn)) {
                     // hack because the game's reequip logic doesn't consider better shields
                     if (null != currentShield) {
                         if (currentShield.TryUnequip()) {
@@ -70,7 +70,7 @@ namespace XRL.World.Parts.CleverGirl
             if (findBetterThing("Armor",
                                 _ => true,
                                 new Brain.GearSorter(ParentObject),
-                                (part, thing) => part.Type == thing.GetPart<Armor>().WornOn)) {
+                                (part, thing) => part.Type == thing.GetPart<Armor>()?.WornOn)) {
                 return;
             }
 
@@ -81,7 +81,7 @@ namespace XRL.World.Parts.CleverGirl
                                 new Brain.WeaponSorter(ParentObject),
                                 (part, thing) => !part.Primary &&
                                                  part.Equipped != currentShield &&
-                                                 part.Type == thing.GetPart<MeleeWeapon>().Slot)) {
+                                                 part.Type == thing.GetPart<MeleeWeapon>()?.Slot)) {
                 return;
             }
         }
