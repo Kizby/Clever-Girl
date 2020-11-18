@@ -5,13 +5,16 @@ namespace XRL.World.Parts.CleverGirl
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Xml;
+    using System.Xml.Schema;
+    using System.Xml.Serialization;
     using XRL.UI;
     using XRL.World.CleverGirl;
     using XRL.World.Parts.Mutation;
 
     [Serializable]
     [HarmonyPatch]
-    public class AIManageMutations : IPart {
+    public class AIManageMutations : IPart, IXmlSerializable {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction{
             Name = "Clever Girl - Manage Mutations",
             Display = "manage mu{{inventoryhotkey|t}}ations",
@@ -23,6 +26,33 @@ namespace XRL.World.Parts.CleverGirl
 
         public bool WantNewMutations = false;
         public int NewMutationSavings = 0;
+        
+        // XMLSerialization for compatibility with Armithaig's Recur mod
+        public XmlSchema GetSchema() => null;
+        public void WriteXml(XmlWriter writer) {
+            writer.WriteStartElement("FocusingMutations");
+            foreach (var mutation in FocusingMutations) {
+                writer.WriteElementString("name", mutation);
+            }
+            writer.WriteEndElement();
+            writer.WriteElementString("WantNewMutations", WantNewMutations ? "yes" : "no");
+            if (WantNewMutations) {
+                writer.WriteElementString("NewMutationSavings", NewMutationSavings.ToString());
+            }
+        }
+
+        public void ReadXml(XmlReader reader) {
+            var startDepth = reader.Depth;
+            reader.ReadStartElement("FocusingMutations");
+            while (reader.Depth > startDepth) {
+                FocusingMutations.Add(reader.ReadElementContentAsString("name", null));
+            }
+            reader.ReadEndElement();
+            WantNewMutations = reader.ReadElementContentAsString("WantNewMutations", null) == "yes";
+            if (WantNewMutations) {
+                NewMutationSavings = int.Parse(reader.ReadElementContentAsString("NewMutationSavings", null));
+            }
+        }
 
         public static HashSet<string> CombatMutations = new HashSet<string>{
             "Corrosive Gas Generation",

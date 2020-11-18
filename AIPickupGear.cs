@@ -4,6 +4,9 @@ using System.Collections.Generic;
 namespace XRL.World.Parts.CleverGirl
 {
     using System.Linq;
+    using System.Xml;
+    using System.Xml.Schema;
+    using System.Xml.Serialization;
     using AI.GoalHandlers.CleverGirl;
     using Qud.API;
     using XRL.Rules;
@@ -11,7 +14,7 @@ namespace XRL.World.Parts.CleverGirl
     using XRL.World.CleverGirl;
 
     [Serializable]
-    public class AIPickupGear : IPart {
+    public class AIPickupGear : IPart, IXmlSerializable {
         public static readonly Utility.InventoryAction ENABLE = new Utility.InventoryAction{
             Name = "Clever Girl - Enable Gear Pickup",
             Display = "enable gear {{inventoryhotkey|p}}ickup",
@@ -24,6 +27,13 @@ namespace XRL.World.Parts.CleverGirl
             Command = "CleverGirl_DisableGearPickup",
             Key = 'p',
         };
+
+        // XMLSerialization for compatibility with Armithaig's Recur mod
+        public XmlSchema GetSchema() => null;
+
+        // no actual state to write beyond the existence of this part
+        public void WriteXml(XmlWriter writer) {}
+        public void ReadXml(XmlReader reader) {}
 
         public override bool WantTurnTick() => true;
 

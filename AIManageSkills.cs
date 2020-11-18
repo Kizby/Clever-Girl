@@ -4,12 +4,15 @@ namespace XRL.World.Parts.CleverGirl
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Xml;
+    using System.Xml.Schema;
+    using System.Xml.Serialization;
     using XRL.UI;
     using XRL.World.CleverGirl;
     using XRL.World.Skills;
 
     [Serializable]
-    public class AIManageSkills : IPart {
+    public class AIManageSkills : IPart, IXmlSerializable {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction{
             Name = "Clever Girl - Manage Skills",
             Display = "manage s{{inventoryhotkey|k}}ills",
@@ -46,6 +49,26 @@ namespace XRL.World.Parts.CleverGirl
         };
 
         public List<string> LearningSkills = new List<string>();
+
+
+        // XMLSerialization for compatibility with Armithaig's Recur mod
+        public XmlSchema GetSchema() => null;
+        public void WriteXml(XmlWriter writer) {
+            writer.WriteStartElement("LearningSkills");
+            foreach (var skill in LearningSkills) {
+                writer.WriteElementString("name", skill);
+            }
+            writer.WriteEndElement();
+        }
+
+        public void ReadXml(XmlReader reader) {
+            var startDepth = reader.Depth;
+            reader.ReadStartElement("LearningSkills");
+            while (reader.Depth > startDepth) {
+                LearningSkills.Add(reader.ReadElementContentAsString("name", null));
+            }
+            reader.ReadEndElement();
+        }
 
         public override bool WantEvent(int ID, int cascade)
         {
