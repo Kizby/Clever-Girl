@@ -1,9 +1,9 @@
 using System;
 
-namespace XRL.World.AI.GoalHandlers.CleverGirl
+namespace XRL.World.AI.GoalHandlers
 {
     [Serializable]
-    public class GoPickupGear : GoalHandler
+    public class CleverGirl_GoPickupGear : GoalHandler
     {
         public readonly GameObject Gear;
 
@@ -24,7 +24,7 @@ namespace XRL.World.AI.GoalHandlers.CleverGirl
             }
         }
 
-        public GoPickupGear(GameObject gear) {
+        public CleverGirl_GoPickupGear(GameObject gear) {
             this.Gear = gear;
         }
     }

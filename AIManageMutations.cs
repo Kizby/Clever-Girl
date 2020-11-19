@@ -1,7 +1,7 @@
 using System;
 using HarmonyLib;
 
-namespace XRL.World.Parts.CleverGirl
+namespace XRL.World.Parts
 {
     using System.Collections.Generic;
     using System.Linq;
@@ -14,7 +14,7 @@ namespace XRL.World.Parts.CleverGirl
 
     [Serializable]
     [HarmonyPatch]
-    public class AIManageMutations : IPart, IXmlSerializable {
+    public class CleverGirl_AIManageMutations : IPart, IXmlSerializable {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction{
             Name = "Clever Girl - Manage Mutations",
             Display = "manage mu{{inventoryhotkey|t}}ations",
@@ -27,33 +27,6 @@ namespace XRL.World.Parts.CleverGirl
         public bool WantNewMutations = false;
         public int NewMutationSavings = 0;
         
-        // XMLSerialization for compatibility with Armithaig's Recur mod
-        public XmlSchema GetSchema() => null;
-        public void WriteXml(XmlWriter writer) {
-            writer.WriteStartElement("FocusingMutations");
-            foreach (var mutation in FocusingMutations) {
-                writer.WriteElementString("name", mutation);
-            }
-            writer.WriteEndElement();
-            writer.WriteElementString("WantNewMutations", WantNewMutations ? "yes" : "no");
-            if (WantNewMutations) {
-                writer.WriteElementString("NewMutationSavings", NewMutationSavings.ToString());
-            }
-        }
-
-        public void ReadXml(XmlReader reader) {
-            var startDepth = reader.Depth;
-            reader.ReadStartElement("FocusingMutations");
-            while (reader.Depth > startDepth) {
-                FocusingMutations.Add(reader.ReadElementContentAsString("name", null));
-            }
-            reader.ReadEndElement();
-            WantNewMutations = reader.ReadElementContentAsString("WantNewMutations", null) == "yes";
-            if (WantNewMutations) {
-                NewMutationSavings = int.Parse(reader.ReadElementContentAsString("NewMutationSavings", null));
-            }
-        }
-
         public static HashSet<string> CombatMutations = new HashSet<string>{
             "Corrosive Gas Generation",
             "Electromagnetic Pulse",
@@ -201,7 +174,7 @@ namespace XRL.World.Parts.CleverGirl
         [HarmonyPatch(typeof(BaseMutation), "RapidLevel")]
         static void RapidLevelInstead(int amount, ref BaseMutation __instance) {
             // check if we're managing this creature
-            var manageMutations = __instance.ParentObject.GetPart<AIManageMutations>();
+            var manageMutations = __instance.ParentObject.GetPart<CleverGirl_AIManageMutations>();
 
             if (null == manageMutations) {
                 // do nothing otherwise
@@ -263,7 +236,7 @@ namespace XRL.World.Parts.CleverGirl
                 if (index < 0) {
                     if (0 == FocusingMutations.Count && !WantNewMutations) {
                         // don't bother listening if there's nothing to hear
-                        ParentObject.RemovePart<AIManageMutations>();
+                        ParentObject.RemovePart<CleverGirl_AIManageMutations>();
                     } else {
                         // spend any MP we have if relevant
                         SpendMP();
@@ -296,6 +269,40 @@ namespace XRL.World.Parts.CleverGirl
                     }
                 }
             }
+        }
+        
+        // XMLSerialization for compatibility with Armithaig's Recur mod
+        public XmlSchema GetSchema() => null;
+        public void WriteXml(XmlWriter writer) {
+            writer.WriteStartElement("FocusingMutations");
+            foreach (var mutation in FocusingMutations) {
+                writer.WriteElementString("name", mutation);
+            }
+            writer.WriteEndElement();
+            writer.WriteElementString("WantNewMutations", WantNewMutations ? "yes" : "no");
+            if (WantNewMutations) {
+                writer.WriteElementString("NewMutationSavings", NewMutationSavings.ToString());
+            }
+        }
+
+        public void ReadXml(XmlReader reader) {
+            reader.ReadStartElement();
+
+            reader.ReadStartElement("FocusingMutations");
+            while (reader.MoveToContent() != XmlNodeType.EndElement) {
+                FocusingMutations.Add(reader.ReadElementContentAsString("name", ""));
+            }
+            reader.ReadEndElement();
+
+            reader.MoveToContent();
+            WantNewMutations = reader.ReadElementContentAsString("WantNewMutations", "") == "yes";
+
+            if (WantNewMutations) {
+                reader.MoveToContent();
+                NewMutationSavings = int.Parse(reader.ReadElementContentAsString("NewMutationSavings", ""));
+            }
+
+            reader.ReadEndElement();
         }
     }
 }

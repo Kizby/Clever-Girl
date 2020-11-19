@@ -1,14 +1,17 @@
 using System;
 
-namespace XRL.World.Parts.CleverGirl
+namespace XRL.World.Parts
 {
     using XRL.Rules;
     using XRL.World.CleverGirl;
     using Qud.API;
     using System.Linq;
+    using System.Xml;
+    using System.Xml.Schema;
+    using System.Xml.Serialization;
 
     [Serializable]
-    public class AIUnburden : IPart {
+    public class CleverGirl_AIUnburden : IPart, IXmlSerializable {
         public override bool WantTurnTick() => true;
 
         public override void TurnTick(long TurnNumber)
@@ -48,6 +51,15 @@ namespace XRL.World.Parts.CleverGirl
                     break;
                 }
             }
+        }
+
+        // XMLSerialization for compatibility with Armithaig's Recur mod
+        public XmlSchema GetSchema() => null;
+
+        // no actual state to write beyond the existence of this part
+        public void WriteXml(XmlWriter writer) {}
+        public void ReadXml(XmlReader reader) {
+            reader.Skip();
         }
     }
 }
