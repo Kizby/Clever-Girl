@@ -28,6 +28,7 @@ namespace XRL.World.Parts
                         E.Object.HasPart("CleverGirl_AIPickupGear") ? CleverGirl_AIPickupGear.DISABLE : CleverGirl_AIPickupGear.ENABLE,
                         CleverGirl_AIManageSkills.ACTION,
                         CleverGirl_AIManageMutations.ACTION,
+                        CleverGirl_AIManageAttributes.ACTION,
                     };
                     foreach (var action in actions) {
                         E.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
@@ -58,6 +59,12 @@ namespace XRL.World.Parts
             if (E.Command == CleverGirl_AIManageMutations.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
                 if (E.Item.RequirePart<CleverGirl_AIManageMutations>().Manage()) {
                     ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Mutations");
+                }
+                E.RequestInterfaceExit();
+            }
+            if (E.Command == CleverGirl_AIManageAttributes.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (E.Item.RequirePart<CleverGirl_AIManageAttributes>().Manage()) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Attributes");
                 }
                 E.RequestInterfaceExit();
             }
