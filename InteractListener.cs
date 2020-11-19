@@ -70,7 +70,7 @@ namespace XRL.World.Parts
                 E.RequestInterfaceExit();
             }
             if (E.Command == ManageGear.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
-                if (ManageGear.Manage(E.Item)) {
+                if (ManageGear.Manage(E.Actor, E.Item)) {
                     ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Gear");
                 }
                 E.RequestInterfaceExit();

@@ -11,9 +11,9 @@ namespace XRL.World.CleverGirl
             Key = 'e',
         };
 
-        public static bool Manage(GameObject follower) {
-            IScreen screen = new EquipmentScreen();
-            screen.Show(follower);
+        public static bool Manage(GameObject player, GameObject follower) {
+            var screen = new UI.CleverGirl.FollowerEquipmentScreen();
+            screen.Show(player, follower);
             return false;
         }
     }
