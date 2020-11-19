@@ -72,7 +72,7 @@ namespace XRL.World.Parts
                 bool hasAllPowers = true;
                 if (ParentObject.HasSkill(skill.Class)) {
                     foreach (var power in skill.Powers.Values) {
-                        if (!ParentObject.HasSkill(power.Class)) {
+                        if (!ParentObject.HasSkill(power.Class) && !IgnoreSkills.Contains(power.Name)) {
                             hasAllPowers = false;
                             if (power.Cost > budget) {
                                 continue;
