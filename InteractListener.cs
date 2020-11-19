@@ -29,6 +29,7 @@ namespace XRL.World.Parts
                         CleverGirl_AIManageSkills.ACTION,
                         CleverGirl_AIManageMutations.ACTION,
                         CleverGirl_AIManageAttributes.ACTION,
+                        ManageGear.ACTION,
                     };
                     foreach (var action in actions) {
                         E.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
@@ -65,6 +66,12 @@ namespace XRL.World.Parts
             if (E.Command == CleverGirl_AIManageAttributes.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
                 if (E.Item.RequirePart<CleverGirl_AIManageAttributes>().Manage()) {
                     ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Attributes");
+                }
+                E.RequestInterfaceExit();
+            }
+            if (E.Command == ManageGear.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (ManageGear.Manage(E.Item)) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Gear");
                 }
                 E.RequestInterfaceExit();
             }
