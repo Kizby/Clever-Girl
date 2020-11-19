@@ -1,15 +1,18 @@
 using System;
 
-namespace XRL.World.Parts.CleverGirl
+namespace XRL.World.Parts
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Xml;
+    using System.Xml.Schema;
+    using System.Xml.Serialization;
     using XRL.UI;
     using XRL.World.CleverGirl;
     using XRL.World.Skills;
 
     [Serializable]
-    public class AIManageSkills : IPart {
+    public class CleverGirl_AIManageSkills : IPart, IXmlSerializable {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction{
             Name = "Clever Girl - Manage Skills",
             Display = "manage s{{inventoryhotkey|k}}ills",
@@ -142,7 +145,7 @@ namespace XRL.World.Parts.CleverGirl
                 if (index < 0) {
                     if (0 == LearningSkills.Count) {
                         // don't bother listening if there's nothing to hear
-                        ParentObject.RemovePart<AIManageSkills>();
+                        ParentObject.RemovePart<CleverGirl_AIManageSkills>();
                     } else {
                         // spend any skill points we have saved up
                         SpendSP();
@@ -167,6 +170,28 @@ namespace XRL.World.Parts.CleverGirl
                         break;
                 }
             }
+        }
+
+        // XMLSerialization for compatibility with Armithaig's Recur mod
+        public XmlSchema GetSchema() => null;
+        public void WriteXml(XmlWriter writer) {
+            writer.WriteStartElement("LearningSkills");
+            foreach (var skill in LearningSkills) {
+                writer.WriteElementString("name", skill);
+            }
+            writer.WriteEndElement();
+        }
+
+        public void ReadXml(XmlReader reader) {
+            reader.ReadStartElement();
+
+            reader.ReadStartElement("LearningSkills");
+            while (reader.MoveToContent() != XmlNodeType.EndElement) {
+                LearningSkills.Add(reader.ReadElementContentAsString("name", ""));
+            }
+            reader.ReadEndElement();
+
+            reader.ReadEndElement();
         }
     }
 }

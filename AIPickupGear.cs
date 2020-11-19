@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
 
-namespace XRL.World.Parts.CleverGirl
+namespace XRL.World.Parts
 {
     using System.Linq;
-    using AI.GoalHandlers.CleverGirl;
+    using System.Xml;
+    using System.Xml.Schema;
+    using System.Xml.Serialization;
+    using AI.GoalHandlers;
     using Qud.API;
     using XRL.Rules;
-    using XRL.World.AI.GoalHandlers;
     using XRL.World.CleverGirl;
 
     [Serializable]
-    public class AIPickupGear : IPart {
+    public class CleverGirl_AIPickupGear : IPart, IXmlSerializable {
         public static readonly Utility.InventoryAction ENABLE = new Utility.InventoryAction{
             Name = "Clever Girl - Enable Gear Pickup",
             Display = "enable gear {{inventoryhotkey|p}}ickup",
@@ -155,8 +157,17 @@ namespace XRL.World.Parts.CleverGirl
 
         void GoGet(GameObject item) {
             ParentObject.pBrain.Think("I want that " + item.DisplayNameOnlyStripped);
-            ParentObject.pBrain.PushGoal(new GoPickupGear(item));
+            ParentObject.pBrain.PushGoal(new CleverGirl_GoPickupGear(item));
             ParentObject.pBrain.PushGoal(new MoveTo(item.CurrentCell));
+        }
+
+        // XMLSerialization for compatibility with Armithaig's Recur mod
+        public XmlSchema GetSchema() => null;
+
+        // no actual state to write beyond the existence of this part
+        public void WriteXml(XmlWriter writer) {}
+        public void ReadXml(XmlReader reader) {
+            reader.Skip();
         }
 
         // why doesn't Brain have this? 😭
