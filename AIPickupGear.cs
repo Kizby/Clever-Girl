@@ -1,26 +1,24 @@
-using System;
-using System.Collections.Generic;
-
-namespace XRL.World.Parts
-{
+namespace XRL.World.Parts {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Xml;
     using System.Xml.Schema;
     using System.Xml.Serialization;
-    using AI.GoalHandlers;
+    using XRL.World.AI.GoalHandlers;
     using Qud.API;
     using XRL.Rules;
     using XRL.World.CleverGirl;
 
     [Serializable]
     public class CleverGirl_AIPickupGear : IPart, IXmlSerializable {
-        public static readonly Utility.InventoryAction ENABLE = new Utility.InventoryAction{
+        public static readonly Utility.InventoryAction ENABLE = new Utility.InventoryAction {
             Name = "Clever Girl - Enable Gear Pickup",
             Display = "enable gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_EnableGearPickup",
             Key = 'p',
         };
-        public static readonly Utility.InventoryAction DISABLE = new Utility.InventoryAction{
+        public static readonly Utility.InventoryAction DISABLE = new Utility.InventoryAction {
             Name = "Clever Girl - Disable Gear Pickup",
             Display = "disable gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_DisableGearPickup",
@@ -29,12 +27,11 @@ namespace XRL.World.Parts
 
         public override bool WantTurnTick() => true;
 
-        public override void TurnTick(long TurnNumber)
-        {
+        public override void TurnTick(long TurnNumber) {
             if (ParentObject.IsBusy()) {
                 return;
             }
-            
+
             if (ParentObject.IsPlayer()) {
                 return;
             }
@@ -43,7 +40,7 @@ namespace XRL.World.Parts
 
             // Primary weapon
             if (ParentObject.IsCombatObject() &&
-                findBetterThing("MeleeWeapon",
+                FindBetterThing("MeleeWeapon",
                                 go => go.HasTag("MeleeWeapon"),
                                 new Brain.WeaponSorter(ParentObject),
                                 (part, thing) => part.Primary && part.Type == thing.GetPart<MeleeWeapon>()?.Slot)) {
@@ -54,22 +51,20 @@ namespace XRL.World.Parts
             if (ParentObject.HasSkill("Shield")) {
                 Utility.MaybeLog("Considering shields");
                 // manually compare to our current best shield since the WornOn's might not match
-                if (findBetterThing("Shield",
+                if (FindBetterThing("Shield",
                                     go => go.HasTag("Shield") && Brain.CompareShields(go, currentShield, ParentObject) < 0,
                                     new ShieldSorter(ParentObject),
                                     (part, thing) => !part.Primary && part.Type == thing.GetPart<Shield>()?.WornOn)) {
                     // hack because the game's reequip logic doesn't consider better shields
-                    if (null != currentShield) {
-                        if (currentShield.TryUnequip()) {
-                            EquipmentAPI.DropObject(currentShield);
-                        };
+                    if (currentShield?.TryUnequip() == true) {
+                        EquipmentAPI.DropObject(currentShield);
                     }
                     return;
                 }
             }
 
             // Armor
-            if (findBetterThing("Armor",
+            if (FindBetterThing("Armor",
                                 _ => true,
                                 new Brain.GearSorter(ParentObject),
                                 (part, thing) => part.Type == thing.GetPart<Armor>()?.WornOn)) {
@@ -78,17 +73,16 @@ namespace XRL.World.Parts
 
             // Additional weapons
             if (ParentObject.IsCombatObject() &&
-                findBetterThing("MeleeWeapon",
+                FindBetterThing("MeleeWeapon",
                                 go => go.HasTag("MeleeWeapon"),
                                 new Brain.WeaponSorter(ParentObject),
                                 (part, thing) => !part.Primary &&
                                                  part.Equipped != currentShield &&
                                                  part.Type == thing.GetPart<MeleeWeapon>()?.Slot)) {
-                return;
             }
         }
 
-        private bool findBetterThing(string SearchPart,
+        private bool FindBetterThing(string SearchPart,
                                      Func<GameObject, bool> whichThings,
                                      Comparer<GameObject> thingComparer,
                                      Func<BodyPart, GameObject, bool> whichBodyParts) {
@@ -102,12 +96,12 @@ namespace XRL.World.Parts
                 return false;
             }
 
-            var things =  currentCell.ParentZone
+            var things = currentCell.ParentZone
                 .FastFloodVisibility(currentCell.X, currentCell.Y, 30, SearchPart, ParentObject)
                 .Where(whichThings)
                 .Where(go => ParentObject.HasLOSTo(go))
                 .ToList();
-            if (0 == things.Count) {
+            if (things.Count == 0) {
                 Utility.MaybeLog("No " + SearchPart + "s");
                 return false;
             }
@@ -155,33 +149,45 @@ namespace XRL.World.Parts
             return false;
         }
 
-        void GoGet(GameObject item) {
+        private void GoGet(GameObject item) {
             ParentObject.pBrain.Think("I want that " + item.DisplayNameOnlyStripped);
-            ParentObject.pBrain.PushGoal(new CleverGirl_GoPickupGear(item));
-            ParentObject.pBrain.PushGoal(new MoveTo(item.CurrentCell));
+            _ = ParentObject.pBrain.PushGoal(new CleverGirl_GoPickupGear(item));
+            _ = ParentObject.pBrain.PushGoal(new MoveTo(item.CurrentCell));
         }
 
-        // XMLSerialization for compatibility with Armithaig's Recur mod
+        /// <summary>
+        /// XMLSerialization for compatibility with Armithaig's Recur mod
+        /// </summary>
         public XmlSchema GetSchema() => null;
 
-        // no actual state to write beyond the existence of this part
-        public void WriteXml(XmlWriter writer) {}
+        /// <summary>
+        /// no actual state to write beyond the existence of this part
+        /// </summary>
+        /// <param name="writer"></param>
+        public void WriteXml(XmlWriter writer) { }
         public void ReadXml(XmlReader reader) {
             reader.Skip();
         }
 
-        // why doesn't Brain have this? 😭
-        class ShieldSorter : Comparer<GameObject> {
-            private GameObject POV;
-            private bool Reverse;
+        /// <summary>
+        /// why doesn't Brain have this? 😭
+        /// </summary>
+        private class ShieldSorter : Comparer<GameObject> {
+            private readonly GameObject POV;
+            private readonly bool Reverse;
 
-            public ShieldSorter(GameObject POV) => this.POV = POV;
+            public ShieldSorter(GameObject POV) {
+                this.POV = POV;
+            }
 
             public ShieldSorter(GameObject POV, bool Reverse)
-                : this(POV)
-                => this.Reverse = Reverse;
+                : this(POV) {
+                this.Reverse = Reverse;
+            }
 
-            public override int Compare(GameObject o1, GameObject o2) => Brain.CompareShields(o1, o2, this.POV) * (this.Reverse ? -1 : 1);
+            public override int Compare(GameObject x, GameObject y) {
+                return Brain.CompareShields(x, y, POV) * (Reverse ? -1 : 1);
+            }
         }
     }
 }

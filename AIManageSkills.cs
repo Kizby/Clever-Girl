@@ -1,7 +1,5 @@
-using System;
-
-namespace XRL.World.Parts
-{
+namespace XRL.World.Parts {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Xml;
@@ -13,14 +11,16 @@ namespace XRL.World.Parts
 
     [Serializable]
     public class CleverGirl_AIManageSkills : IPart, IXmlSerializable {
-        public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction{
+        public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Skills",
             Display = "manage s{{inventoryhotkey|k}}ills",
             Command = "CleverGirl_ManageSkills",
             Key = 'k',
         };
 
-        // these skills don't make sense for followers
+        /// <summary>
+        /// these skills don't make sense for followers
+        /// </summary>
         public static HashSet<string> IgnoreSkills = new HashSet<string>{
             "Cooking and Gathering",
             "Customs and Folklore",
@@ -50,13 +50,10 @@ namespace XRL.World.Parts
 
         public List<string> LearningSkills = new List<string>();
 
-        public override bool WantEvent(int ID, int cascade)
-        {
-            return ID == StatChangeEvent.ID;
-        }
+        public override bool WantEvent(int ID, int cascade) => ID == StatChangeEvent.ID;
 
-        public override bool HandleEvent(StatChangeEvent E) {
-            if ("SP" == E.Name) {
+        public override bool HandleEvent(StatChangeEvent e) {
+            if (e.Name == "SP") {
                 SpendSP();
             }
             return true;
@@ -69,7 +66,7 @@ namespace XRL.World.Parts
             var toDrop = new List<string>();
             foreach (var skillName in LearningSkills) {
                 var skill = SkillFactory.Factory.SkillList[skillName];
-                bool hasAllPowers = true;
+                var hasAllPowers = true;
                 if (ParentObject.HasSkill(skill.Class)) {
                     foreach (var power in skill.Powers.Values) {
                         if (!ParentObject.HasSkill(power.Class) && !IgnoreSkills.Contains(power.Name)) {
@@ -101,7 +98,7 @@ namespace XRL.World.Parts
                 ParentObject.AddSkill(which.Item1);
                 stat.Penalty += which.Item2; // triggers a StatChangeEvent which will call this again until all points are spent
 
-                this.DidX("learn", which.Item3, "!", ColorAsGoodFor: this.ParentObject);
+                DidX("learn", which.Item3, "!", ColorAsGoodFor: ParentObject);
             }
         }
 
@@ -140,10 +137,10 @@ namespace XRL.World.Parts
             while (true) {
                 var index = Popup.ShowOptionList(Options: strings.ToArray(),
                                                 Hotkeys: keys.ToArray(),
-                                                Intro: ("What skills should " + ParentObject.the + ParentObject.ShortDisplayName + " learn?"),
+                                                Intro: "What skills should " + ParentObject.the + ParentObject.ShortDisplayName + " learn?",
                                                 AllowEscape: true);
                 if (index < 0) {
-                    if (0 == LearningSkills.Count) {
+                    if (LearningSkills.Count == 0) {
                         // don't bother listening if there's nothing to hear
                         ParentObject.RemovePart<CleverGirl_AIManageSkills>();
                     } else {
@@ -152,28 +149,27 @@ namespace XRL.World.Parts
                     }
                     return changed;
                 }
-                switch (strings[index][0]) {
-                    case '*':
-                        // ignore
-                        break;
-                    case '-':
-                        // start learning this skill
-                        LearningSkills.Add(skills[index]);
-                        strings[index] = '+' + strings[index].Substring(1);
-                        changed = true;
-                        break;
-                    case '+':
-                        // stop learning this skill
-                        LearningSkills.Remove(skills[index]);
-                        strings[index] = '-' + strings[index].Substring(1);
-                        changed = true;
-                        break;
+                if (strings[index][0] == '*') {
+                    // ignore
+                } else if (strings[index][0] == '-') {
+                    // start learning this skill
+                    LearningSkills.Add(skills[index]);
+                    strings[index] = '+' + strings[index].Substring(1);
+                    changed = true;
+                } else if (strings[index][0] == '+') {
+                    // stop learning this skill
+                    _ = LearningSkills.Remove(skills[index]);
+                    strings[index] = '-' + strings[index].Substring(1);
+                    changed = true;
                 }
             }
         }
 
-        // XMLSerialization for compatibility with Armithaig's Recur mod
+        /// <summary>
+        /// XMLSerialization for compatibility with Armithaig's Recur mod
+        /// </summary>
         public XmlSchema GetSchema() => null;
+
         public void WriteXml(XmlWriter writer) {
             writer.WriteStartElement("LearningSkills");
             foreach (var skill in LearningSkills) {

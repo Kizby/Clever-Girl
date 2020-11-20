@@ -1,7 +1,5 @@
-using System;
-
-namespace XRL.World.Parts
-{
+namespace XRL.World.Parts {
+    using System;
     using XRL.Rules;
     using XRL.World.CleverGirl;
     using Qud.API;
@@ -14,8 +12,7 @@ namespace XRL.World.Parts
     public class CleverGirl_AIUnburden : IPart, IXmlSerializable {
         public override bool WantTurnTick() => true;
 
-        public override void TurnTick(long TurnNumber)
-        {
+        public override void TurnTick(long TurnNumber) {
             var excess = ParentObject.Body.GetWeight() + ParentObject.Inventory.GetWeight() - Stats.GetMaxWeight(ParentObject);
             if (excess <= 0) {
                 return;
@@ -23,7 +20,7 @@ namespace XRL.World.Parts
 
             Utility.MaybeLog("Overburdened by " + excess + "#");
             var objects = ParentObject.Inventory.GetObjects(obj => obj.WeightEach > 0);
-            if (0 == objects.Count) {
+            if (objects.Count == 0) {
                 // nothing to drop that would improve anything
                 return;
             }
@@ -38,7 +35,7 @@ namespace XRL.World.Parts
 
             foreach (var obj in objects.OrderByDescending(metric)) {
                 // how many would we need to drop to fix the whole excess?
-                var toDrop = (excess - 1) / obj.WeightEach + 1; // ceil(excess / obj.WeightEach)
+                var toDrop = ((excess - 1) / obj.WeightEach) + 1; // ceil(excess / obj.WeightEach)
                 if (toDrop < obj.Count) {
                     // only drop what we need to
                     obj.SplitStack(toDrop, ParentObject);
@@ -53,11 +50,16 @@ namespace XRL.World.Parts
             }
         }
 
-        // XMLSerialization for compatibility with Armithaig's Recur mod
+        /// <summary>
+        /// XMLSerialization for compatibility with Armithaig's Recur mod
+        /// </summary>
         public XmlSchema GetSchema() => null;
 
-        // no actual state to write beyond the existence of this part
-        public void WriteXml(XmlWriter writer) {}
+        /// <summary>
+        /// no actual state to write beyond the existence of this part
+        /// </summary>
+        /// <param name="writer"></param>
+        public void WriteXml(XmlWriter writer) { }
         public void ReadXml(XmlReader reader) {
             reader.Skip();
         }

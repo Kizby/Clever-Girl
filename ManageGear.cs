@@ -1,16 +1,15 @@
 // equipment screen logic copied and modified from Caves of Qud's EquipmentScreen.cs
 
-using ConsoleLib.Console;
-using Qud.API;
-using System.Collections.Generic;
-using XRL.Core;
-using XRL.UI;
-using XRL.World.Parts;
+namespace XRL.World.CleverGirl {
+    using ConsoleLib.Console;
+    using Qud.API;
+    using System.Collections.Generic;
+    using XRL.Core;
+    using XRL.UI;
+    using XRL.World.Parts;
 
-namespace XRL.World.CleverGirl
-{
-    public class ManageGear {
-        public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction{
+    public static class ManageGear {
+        public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Gear",
             Display = "manage g{{inventoryhotkey|e}}ar",
             Command = "CleverGirl_ManageGear",
@@ -19,27 +18,26 @@ namespace XRL.World.CleverGirl
 
         public static bool Manage(GameObject Leader, GameObject Follower) {
             GameManager.Instance.PushGameView("Equipment");
-            ScreenBuffer screenBuffer = ScreenBuffer.GetScrapBuffer1();
-            Keys keys = Keys.None;
-            int selectedIndex = 0;
-            int windowStart = 0;
-            ScreenTab screenTab = ScreenTab.Equipment;
-            bool Done = false;
-            bool Changed = false;
-            Body body = Follower.Body;
-            List<BodyPart> relevantBodyParts = new List<BodyPart>();
-            List<GameObject> allCybernetics = new List<GameObject>();
-            List<GameObject> allEquippedOrDefault = new List<GameObject>();
-            List<GameObject> allEquipped = new List<GameObject>();
-            Dictionary<char, int> keymap = new Dictionary<char, int>();
-            HashSet<GameObject> wornElsewhere = new HashSet<GameObject>();
+            var screenBuffer = ScreenBuffer.GetScrapBuffer1();
+            var selectedIndex = 0;
+            var windowStart = 0;
+            var screenTab = ScreenTab.Equipment;
+            var Done = false;
+            var Changed = false;
+            var body = Follower.Body;
+            var relevantBodyParts = new List<BodyPart>();
+            var allCybernetics = new List<GameObject>();
+            var allEquippedOrDefault = new List<GameObject>();
+            var allEquipped = new List<GameObject>();
+            var keymap = new Dictionary<char, int>();
+            var wornElsewhere = new HashSet<GameObject>();
             while (!Done) {
-                bool HasCybernetics = false;
+                var HasCybernetics = false;
                 relevantBodyParts.Clear();
                 allCybernetics.Clear();
                 allEquippedOrDefault.Clear();
                 allEquipped.Clear();
-                foreach (BodyPart loopPart in body.LoopParts()) {
+                foreach (var loopPart in body.LoopParts()) {
                     if (screenTab == ScreenTab.Equipment) {
                         if (loopPart.Equipped != null) {
                             // equipped item
@@ -71,8 +69,8 @@ namespace XRL.World.CleverGirl
                         HasCybernetics = true;
                     }
                 }
-                bool CanChangePrimaryLimb = !Follower.AreHostilesNearby();
-                bool CacheValid = true;
+                var CanChangePrimaryLimb = !Follower.AreHostilesNearby();
+                var CacheValid = true;
                 while (!Done && CacheValid) {
                     Event.ResetPool(false);
                     if (!XRLCore.Core.Game.Running) {
@@ -82,44 +80,37 @@ namespace XRL.World.CleverGirl
                     wornElsewhere.Clear();
                     screenBuffer.Clear();
                     screenBuffer.SingleBox(0, 0, 79, 24, ColorUtility.MakeColor(TextColor.Grey, TextColor.Black));
-                    if (screenTab == ScreenTab.Equipment) {
-                        screenBuffer.Goto(35, 0);
-                        screenBuffer.Write("[ {{W|Equipment}} ]");
-                    } else {
-                        screenBuffer.Goto(35, 0);
-                        screenBuffer.Write("[ {{W|Cybernetics}} ]");
-                    }
-                    screenBuffer.Goto(60, 0);
-                    screenBuffer.Write(" {{W|ESC}} or {{W|5}} to exit ");
-                    screenBuffer.Goto(25, 24);
-                    if (CanChangePrimaryLimb && !relevantBodyParts[selectedIndex].Abstract) {
-                        screenBuffer.Write("[{{W|Tab}} - Set primary limb]");
-                    } else {
-                        screenBuffer.Write("[{{K|Tab - Set primary limb}}]");
-                    }
-                    int rowCount = 22;
-                    int firstRow = 2;
+                    _ = screenBuffer.Goto(35, 0)
+                        .Write(screenTab == ScreenTab.Equipment ?
+                               "[ {{W|Equipment}} ]" :
+                               "[ {{W|Cybernetics}} ]");
+                    _ = screenBuffer.Goto(60, 0)
+                        .Write(" {{W|ESC}} or {{W|5}} to exit ");
+                    _ = screenBuffer.Goto(25, 24)
+                        .Write(CanChangePrimaryLimb && !relevantBodyParts[selectedIndex].Abstract ?
+                            "[{{W|Tab}} - Set primary limb]" :
+                            "[{{K|Tab - Set primary limb}}]");
+                    var rowCount = 22;
+                    var firstRow = 2;
                     if (HasCybernetics) {
-                        screenBuffer.Goto(3, firstRow);
-                        if (screenTab == ScreenTab.Cybernetics) {
-                            screenBuffer.Write("{{K|Equipment}} {{Y|Cybernetics}}");
-                        } else {
-                            screenBuffer.Write("{{Y|Equipment}} {{K|Cybernetics}}");
-                        }
+                        _ = screenBuffer.Goto(3, firstRow)
+                            .Write(screenTab == ScreenTab.Cybernetics ?
+                                "{{K|Equipment}} {{Y|Cybernetics}}" :
+                                "{{Y|Equipment}} {{K|Cybernetics}}");
                         rowCount -= 2;
                         firstRow += 2;
                     }
                     if (relevantBodyParts != null) {
                         keymap.Clear();
-                        for (int partIndex = windowStart; partIndex < relevantBodyParts.Count && partIndex - windowStart < rowCount; ++partIndex) {
+                        for (var partIndex = windowStart; partIndex < relevantBodyParts.Count && partIndex - windowStart < rowCount; ++partIndex) {
                             var currentRow = firstRow + partIndex - windowStart;
                             if (selectedIndex == partIndex) {
-                                screenBuffer.Goto(27, currentRow);
-                                screenBuffer.Write("{{K|>}}");
+                                _ = screenBuffer.Goto(27, currentRow)
+                                    .Write("{{K|>}}");
                             }
-                            screenBuffer.Goto(1, currentRow);
-                            string cursorString = selectedIndex == partIndex ? "{{Y|>}}" : " ";
-                            string partDesc = "";
+                            _ = screenBuffer.Goto(1, currentRow);
+                            var cursorString = selectedIndex == partIndex ? "{{Y|>}}" : " ";
+                            var partDesc = "";
                             if (allCybernetics[partIndex] == null && Options.IndentBodyParts) {
                                 partDesc += new string(' ', body.GetPartDepth(relevantBodyParts[partIndex]));
                             }
@@ -127,7 +118,7 @@ namespace XRL.World.CleverGirl
                             if (relevantBodyParts[partIndex].Primary) {
                                 partDesc += " {{G|*}}";
                             }
-                            char key = (char) ('a' + partIndex);
+                            var key = (char)('a' + partIndex);
                             if (key > 'z') {
                                 key = ' ';
                             } else {
@@ -135,15 +126,15 @@ namespace XRL.World.CleverGirl
                             }
 
                             var keyString = (selectedIndex == partIndex ? "{{W|" : "{{w|") + key + "}}) ";
-                            screenBuffer.Write(cursorString + keyString + partDesc);
+                            _ = screenBuffer.Write(cursorString + keyString + partDesc);
 
-                            screenBuffer.Goto(28, currentRow);
+                            _ = screenBuffer.Goto(28, currentRow);
                             RenderEvent icon = null;
-                            string name = "";
-                            bool fade = false;
+                            var name = "";
+                            var fade = false;
                             if (allEquippedOrDefault[partIndex] == null) {
                                 // nothing in this slot
-                                screenBuffer.Write(selectedIndex == partIndex ? "{{Y|-}}" : "{{K|-}}");
+                                _ = screenBuffer.Write(selectedIndex == partIndex ? "{{Y|-}}" : "{{K|-}}");
                             } else if (screenTab == ScreenTab.Cybernetics) {
                                 // cybernetics
                                 icon = allCybernetics[partIndex].RenderForUI();
@@ -159,7 +150,7 @@ namespace XRL.World.CleverGirl
                                 name = allEquipped[partIndex].DisplayName;
 
                                 fade = !wornElsewhere.Add(allEquipped[partIndex]) ||
-                                    allEquipped[partIndex].HasTag("RenderImplantGreyInEquipment") && allEquipped[partIndex].GetPart<Cybernetics2BaseItem>()?.ImplantedOn != null;
+                                    (allEquipped[partIndex].HasTag("RenderImplantGreyInEquipment") && allEquipped[partIndex].GetPart<Cybernetics2BaseItem>()?.ImplantedOn != null);
                             }
                             if (icon != null) {
                                 if (fade) {
@@ -167,22 +158,22 @@ namespace XRL.World.CleverGirl
                                 } else {
                                     screenBuffer.Write(icon);
                                 }
-                                screenBuffer.Goto(30, currentRow);
-                                screenBuffer.Write(fade ? "{{K|" + ColorUtility.StripFormatting(name) + "}}" : name);
+                                _ = screenBuffer.Goto(30, currentRow)
+                                    .Write(fade ? "{{K|" + ColorUtility.StripFormatting(name) + "}}" : name);
                             }
                         }
                         if (windowStart + rowCount < relevantBodyParts.Count) {
-                            screenBuffer.Goto(2, 24);
-                            screenBuffer.Write("<more...>");
+                            _ = screenBuffer.Goto(2, 24)
+                                .Write("<more...>");
                         }
                         if (windowStart > 0) {
-                            screenBuffer.Goto(2, 0);
-                            screenBuffer.Write("<more...>");
+                            _ = screenBuffer.Goto(2, 0)
+                                .Write("<more...>");
                         }
                         Popup._TextConsole.DrawBuffer(screenBuffer);
-                        keys = Keyboard.getvk(Options.MapDirectionsToKeypad);
+                        var keys = Keyboard.getvk(Options.MapDirectionsToKeypad);
                         ScreenBuffer.ClearImposterSuppression();
-                        char key1 = (char.ToLower((char) Keyboard.Char).ToString() + " ").ToLower()[0];
+                        var key1 = (char.ToLower((char)Keyboard.Char).ToString() + " ").ToLower()[0];
                         if (keys == Keys.MouseEvent && Keyboard.CurrentMouseEvent.Event == "RightClick") {
                             Done = true;
                         } else if (keys == Keys.Escape || keys == Keys.NumPad5) {
@@ -216,13 +207,10 @@ namespace XRL.World.CleverGirl
                         } else if ((Keyboard.vkCode == Keys.Left || keys == Keys.NumPad4) && allEquipped[selectedIndex] != null) {
                             var bodyPart = relevantBodyParts[selectedIndex];
                             var oldEquipped = allEquipped[selectedIndex];
-                            Follower.FireEvent(Event.New("CommandUnequipObject", "BodyPart", (object) bodyPart));
+                            _ = Follower.FireEvent(Event.New("CommandUnequipObject", "BodyPart", bodyPart));
                             if (bodyPart.Equipped != oldEquipped) {
                                 // for convenience, put it in the leader's inventory
                                 Yoink(oldEquipped, Follower, Leader);
-                                if (Follower.FireEvent(Event.New("CommandRemoveObject", "Object", oldEquipped).SetSilent(true))) {
-                                    Leader.TakeObject(oldEquipped);
-                                }
                                 Changed = true;
                                 CacheValid = false;
                             }
@@ -231,19 +219,17 @@ namespace XRL.World.CleverGirl
                                 Popup.Show(Follower.The + Follower.ShortDisplayName + " can't switch primary limbs in combat.");
                             } else if (relevantBodyParts[selectedIndex].Abstract) {
                                 Popup.Show("This body part cannot be set as " + Follower.its + " primary.");
-                            } else {
-                                if (!relevantBodyParts[selectedIndex].PreferedPrimary) {
-                                    relevantBodyParts[selectedIndex].SetAsPreferredDefault();
-                                    Changed = true;
-                                }
+                            } else if (!relevantBodyParts[selectedIndex].PreferedPrimary) {
+                                relevantBodyParts[selectedIndex].SetAsPreferredDefault();
+                                Changed = true;
                             }
                         } else {
                             if (keys == Keys.Enter) {
                                 keys = Keys.Space;
                             }
-                            bool useSelected = (keys == Keys.Space || keys == Keys.Enter);
+                            var useSelected = keys == Keys.Space || keys == Keys.Enter;
                             if (useSelected || (keys >= Keys.A && keys <= Keys.Z && keymap.ContainsKey(key1))) {
-                                int pressedIndex = useSelected ? selectedIndex : keymap[key1];
+                                var pressedIndex = useSelected ? selectedIndex : keymap[key1];
                                 if (allEquipped[pressedIndex] != null) {
                                     var oldEquipped = allEquipped[pressedIndex];
                                     EquipmentAPI.TwiddleObject(Follower, oldEquipped, ref Done);
@@ -253,11 +239,9 @@ namespace XRL.World.CleverGirl
                                         Changed = true;
                                         CacheValid = false;
                                     }
-                                } else {
-                                    if (ShowBodypartEquipUI(Leader, Follower, relevantBodyParts[pressedIndex])) {
-                                        Changed = true;
-                                        CacheValid = false;
-                                    }
+                                } else if (ShowBodypartEquipUI(Leader, Follower, relevantBodyParts[pressedIndex])) {
+                                    Changed = true;
+                                    CacheValid = false;
                                 }
                             }
                         }
@@ -268,10 +252,10 @@ namespace XRL.World.CleverGirl
             return Changed;
         }
         public static bool ShowBodypartEquipUI(GameObject Leader, GameObject Follower, BodyPart SelectedBodyPart) {
-            Inventory leaderInventory = Leader.Inventory;
-            Inventory inventory = Follower.Inventory;
+            var leaderInventory = Leader.Inventory;
+            var inventory = Follower.Inventory;
             if (inventory != null || leaderInventory != null) {
-                List<GameObject> EquipmentList = new List<GameObject>(16);
+                var EquipmentList = new List<GameObject>(16);
                 inventory?.GetEquipmentListForSlot(EquipmentList, SelectedBodyPart.Type);
                 leaderInventory?.GetEquipmentListForSlot(EquipmentList, SelectedBodyPart.Type);
 
@@ -282,15 +266,14 @@ namespace XRL.World.CleverGirl
                     } else if (SelectedBodyPart.Type == "Thrown Weapon") {
                         CategoryPriority = "Grenades";
                     }
-                    GameObject toEquip = PickItem.ShowPicker(EquipmentList, CategoryPriority, PreserveOrder: true);
+                    var toEquip = PickItem.ShowPicker(EquipmentList, CategoryPriority, PreserveOrder: true);
                     if (toEquip == null) {
                         return false;
                     }
-                    Follower.FireEvent(Event.New("CommandEquipObject", "Object", toEquip, "BodyPart", SelectedBodyPart));
+                    _ = Follower.FireEvent(Event.New("CommandEquipObject", "Object", toEquip, "BodyPart", SelectedBodyPart));
                     return true;
-                } else {
-                   Popup.Show("Neither of you have anything to use in that slot.");
                 }
+                Popup.Show("Neither of you have anything to use in that slot.");
             } else {
                 Popup.Show("You both have no inventory!");
             }
@@ -299,7 +282,7 @@ namespace XRL.World.CleverGirl
         public static void Yoink(GameObject Item, GameObject Yoinkee, GameObject Yoinker) {
             if (Item.InInventory != Yoinkee) {
                 // probably stacked with something
-                int equippedCount = Item.GetPart<Stacker>()?.StackCount ?? 1;
+                var equippedCount = Item.GetPart<Stacker>()?.StackCount ?? 1;
                 foreach (var otherItem in Yoinkee.Inventory.Objects) {
                     if (Item.SameAs(otherItem)) {
                         otherItem.SplitStack(equippedCount, Yoinkee);
@@ -307,15 +290,14 @@ namespace XRL.World.CleverGirl
                         break;
                     }
                 }
-
             }
             if (Yoinkee.FireEvent(Event.New("CommandRemoveObject", "Object", Item).SetSilent(true))) {
-                Yoinker.TakeObject(Item);
+                _ = Yoinker.TakeObject(Item);
             }
         }
         private enum ScreenTab {
-            Equipment,
-            Cybernetics,
+            Equipment = 0,
+            Cybernetics = 1,
         }
     }
 }
