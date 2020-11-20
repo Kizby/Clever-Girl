@@ -210,15 +210,33 @@ namespace XRL.World.CleverGirl
                             }
                         } else if (keys == Keys.NumPad2 && selectedIndex < relevantBodyParts.Count - 1) {
                             if (selectedIndex - windowStart == rowCount - 1) {
-                                    ++windowStart;
+                                ++windowStart;
                             }
                             ++selectedIndex;
                         } else if ((Keyboard.vkCode == Keys.Left || keys == Keys.NumPad4) && allEquipped[selectedIndex] != null) {
-                            BodyPart bodyPart = relevantBodyParts[selectedIndex];
+                            var bodyPart = relevantBodyParts[selectedIndex];
+                            var oldEquipped = allEquipped[selectedIndex];
                             Follower.FireEvent(Event.New("CommandUnequipObject", "BodyPart", (object) bodyPart));
-                            CacheValid = false;
+                            if (bodyPart.Equipped != oldEquipped) {
+                                // for convenience, put it in the leader's inventory
+                                Yoink(oldEquipped, Follower, Leader);
+                                if (Follower.FireEvent(Event.New("CommandRemoveObject", "Object", oldEquipped).SetSilent(true))) {
+                                    Leader.TakeObject(oldEquipped);
+                                }
+                                Changed = true;
+                                CacheValid = false;
+                            }
                         } else if (keys == Keys.Tab) {
-                            relevantBodyParts[selectedIndex].SetAsPreferredDefault();
+                            if (!CanChangePrimaryLimb) {
+                                Popup.Show(Follower.The + Follower.ShortDisplayName + " can't switch primary limbs in combat.");
+                            } else if (relevantBodyParts[selectedIndex].Abstract) {
+                                Popup.Show("This body part cannot be set as " + Follower.its + " primary.");
+                            } else {
+                                if (!relevantBodyParts[selectedIndex].PreferedPrimary) {
+                                    relevantBodyParts[selectedIndex].SetAsPreferredDefault();
+                                    Changed = true;
+                                }
+                            }
                         } else {
                             if (keys == Keys.Enter) {
                                 keys = Keys.Space;
@@ -227,11 +245,20 @@ namespace XRL.World.CleverGirl
                             if (useSelected || (keys >= Keys.A && keys <= Keys.Z && keymap.ContainsKey(key1))) {
                                 int pressedIndex = useSelected ? selectedIndex : keymap[key1];
                                 if (allEquipped[pressedIndex] != null) {
-                                    EquipmentAPI.TwiddleObject(Follower, allEquipped[pressedIndex], ref Done);
+                                    var oldEquipped = allEquipped[pressedIndex];
+                                    EquipmentAPI.TwiddleObject(Follower, oldEquipped, ref Done);
+                                    if (relevantBodyParts[pressedIndex].Equipped != oldEquipped) {
+                                        // for convenience, put it in the leader's inventory
+                                        Yoink(oldEquipped, Follower, Leader);
+                                        Changed = true;
+                                        CacheValid = false;
+                                    }
                                 } else {
-                                    ShowBodypartEquipUI(Leader, Follower, relevantBodyParts[pressedIndex]);
+                                    if (ShowBodypartEquipUI(Leader, Follower, relevantBodyParts[pressedIndex])) {
+                                        Changed = true;
+                                        CacheValid = false;
+                                    }
                                 }
-                                CacheValid = false;
                             }
                         }
                     }
@@ -240,7 +267,7 @@ namespace XRL.World.CleverGirl
             GameManager.Instance.PopGameView();
             return Changed;
         }
-        public static void ShowBodypartEquipUI(GameObject Leader, GameObject Follower, BodyPart SelectedBodyPart) {
+        public static bool ShowBodypartEquipUI(GameObject Leader, GameObject Follower, BodyPart SelectedBodyPart) {
             Inventory leaderInventory = Leader.Inventory;
             Inventory inventory = Follower.Inventory;
             if (inventory != null || leaderInventory != null) {
@@ -249,22 +276,41 @@ namespace XRL.World.CleverGirl
                 leaderInventory?.GetEquipmentListForSlot(EquipmentList, SelectedBodyPart.Type);
 
                 if (EquipmentList.Count > 0) {
-                string CategoryPriority = null;
-                if (SelectedBodyPart.Type == "Hand") {
-                    CategoryPriority = "Melee Weapon,Shield,Light Source";
-                } else if (SelectedBodyPart.Type == "Thrown Weapon") {
-                    CategoryPriority = "Grenades";
-                }
-                GameObject toEquip = PickItem.ShowPicker(EquipmentList, CategoryPriority, PreserveOrder: true);
-                if (toEquip == null) {
-                    return;
-                }
-                Follower.FireEvent(Event.New("CommandEquipObject", "Object", toEquip, "BodyPart", SelectedBodyPart));
+                    string CategoryPriority = null;
+                    if (SelectedBodyPart.Type == "Hand") {
+                        CategoryPriority = "Melee Weapon,Shield,Light Source";
+                    } else if (SelectedBodyPart.Type == "Thrown Weapon") {
+                        CategoryPriority = "Grenades";
+                    }
+                    GameObject toEquip = PickItem.ShowPicker(EquipmentList, CategoryPriority, PreserveOrder: true);
+                    if (toEquip == null) {
+                        return false;
+                    }
+                    Follower.FireEvent(Event.New("CommandEquipObject", "Object", toEquip, "BodyPart", SelectedBodyPart));
+                    return true;
                 } else {
                    Popup.Show("Neither of you have anything to use in that slot.");
                 }
             } else {
                 Popup.Show("You both have no inventory!");
+            }
+            return false;
+        }
+        public static void Yoink(GameObject Item, GameObject Yoinkee, GameObject Yoinker) {
+            if (Item.InInventory != Yoinkee) {
+                // probably stacked with something
+                int equippedCount = Item.GetPart<Stacker>()?.StackCount ?? 1;
+                foreach (var otherItem in Yoinkee.Inventory.Objects) {
+                    if (Item.SameAs(otherItem)) {
+                        otherItem.SplitStack(equippedCount, Yoinkee);
+                        Item = otherItem;
+                        break;
+                    }
+                }
+
+            }
+            if (Yoinkee.FireEvent(Event.New("CommandRemoveObject", "Object", Item).SetSilent(true))) {
+                Yoinker.TakeObject(Item);
             }
         }
         private enum ScreenTab {
