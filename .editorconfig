@@ -1,0 +1,235 @@
+# Shared editor configuration <https://editorconfig.org>
+# Stolen shamelessly from https://github.com/kevinoid/NetCoreProject and modified
+
+# This is the top-most EditorConfig file which should apply to files below
+root = true
+
+[*]
+charset = utf-8
+# https://github.com/pharring/EditorGuidelines#editorconfig-support-vs-2017-and-vs-2019-only
+guidelines = 80, 100, 120
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Configure language and formatting conventions to match analyzer rules below
+# https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-formatting-conventions
+# https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions
+csharp_using_directive_placement = inside_namespace:warning
+dotnet_code_quality_unused_parameters = non_public:warning
+# Note: SA1516 requires separation between System.* and all others.
+# Separation between each top-level namespace would be too much space.
+dotnet_separate_import_directive_groups = false
+dotnet_sort_system_directives_first = true
+## Note: qualification style matches SA1101/SX1101 rules below.
+#dotnet_style_qualification_for_field = true:warning
+#dotnet_style_qualification_for_property = true:warning
+#dotnet_style_qualification_for_method = true:warning
+#dotnet_style_qualification_for_event = true:warning
+dotnet_style_predefined_type_for_locals_parameters_members = true:warning
+dotnet_style_predefined_type_for_member_access = true:warning
+dotnet_style_require_accessibility_modifiers = always:warning
+
+# Style deviations from kevinoid's
+csharp_style_expression_bodied_methods = when_on_single_line
+
+## Configure Roslyn Analyzers
+## https://docs.microsoft.com/en-us/visualstudio/code-quality/use-roslyn-analyzers#set-rule-severity-in-an-editorconfig-file
+
+# Enable all diagnostics at warning level by default
+dotnet_analyzer_diagnostic.severity = warning
+
+# Note: dotnet_analyzer_diagnostic.severity should not apply to compiler
+# diagnostics (e.g. IDE*) but does in Visual Studio 16.5 due to
+# https://github.com/dotnet/roslyn/issues/42116 so several default levels are
+# configured below to revert the change resulting from this issue.
+#
+# Note: Compiler diagnostics (e.g. IDE*) are not analyzed during build and will
+# not cause build failures until Microsoft.CodeAnalysis.CSharp.CodeStyle is
+# ready.  See https://github.com/dotnet/roslyn/issues/33558
+
+# Suggest "Avoid excessive class coupling"
+# Broken https://github.com/dotnet/roslyn-analyzers/issues/2133
+dotnet_diagnostic.CA1506.severity = suggestion
+# Suggest "Avoid Dead Conditional Code"
+# Broken https://github.com/dotnet/roslyn-analyzers/issues/2180
+dotnet_diagnostic.CA1508.severity = suggestion
+# Suggest "Prefer jagged arrays over multidimensional"
+# Multidimensional should use less memory (lack of indirection), rows are
+# contiguous in memory, and squareness is enforced.  Performance can vary.
+# https://stackoverflow.com/q/597720 (See .NET Core answers downthread)
+# Which is preferable depends on tradeoffs of specific use cases.
+dotnet_diagnostic.CA1814.severity = suggestion
+# Suggest "Dispose objects before losing scope"
+# Broken https://github.com/dotnet/roslyn-analyzers/issues/2949
+# https://github.com/dotnet/roslyn-analyzers/issues/2936
+dotnet_diagnostic.CA2000.severity = suggestion
+# Suggest "Assemblies should have valid strong names"
+# The value of strong names is dubious.  See:
+# https://github.com/dotnet/corefx/blob/master/Documentation/project-docs/strong-name-signing.md
+# https://github.com/angularsen/UnitsNet/issues/135
+dotnet_diagnostic.CA2210.severity = suggestion
+# Enable heuristic detection from "string format, params object[]" arguments
+# See: https://github.com/dotnet/roslyn-analyzers/pull/3653
+dotnet_code_quality.CA2241.try_determine_additional_string_formatting_methods_automatically = true
+# Ignore "Use var instead of explicit type"
+dotnet_diagnostic.IDE0007.severity = warning
+# Ignore "Use explicit type instead of 'var'"
+dotnet_diagnostic.IDE0008.severity = none
+# Ignore "Use block body for methods"
+dotnet_diagnostic.IDE0022.severity = none
+# Ignore "'if' statement can be simplified"
+dotnet_diagnostic.IDE0045.severity = silent
+# Ignore "'if' statement can be simplified"
+dotnet_diagnostic.IDE0046.severity = silent
+# Suggest "Convert to tuple"
+dotnet_diagnostic.IDE0050.severity = suggestion
+# Suggest "Populate switch"
+dotnet_diagnostic.IDE0072.severity = suggestion
+# Suggest "Expression value is never used"
+# Note: I want to use this, but fluent interfaces (StringBuilder, OptionSet)
+# make it too painful.  Need something more like MustUseReturnValue.
+# https://www.jetbrains.com/help/resharper/Reference__Code_Annotation_Attributes.html#MustUseReturnValueAttribute
+dotnet_diagnostic.IDE0058.severity = suggestion
+## Disable "Using directives must be placed outside of a namespace declaration"
+#dotnet_diagnostic.IDE0065.severity = none
+# Disable "Remove redundant empty line"
+# Redundant with SA1507
+dotnet_diagnostic.RCS1036.severity = none
+# Suggest "Remove 'partial' modifier from type with a single part"
+# This may be done intentionally to allow future extension.
+dotnet_diagnostic.RCS1043.severity = suggestion
+# Disable "Remove unnecessary case label"
+# Conflicts with IDE0010 "Populate switch"
+# I'd prefer to be more explicit about cases.
+dotnet_diagnostic.RCS1069.severity = none
+# Disable "Use --/++ operator instead of assignment"
+# I find the more explicit assignment preferable most of the time.
+dotnet_diagnostic.RCS1089.severity = none
+dotnet_diagnostic.RCS1089FadeOut.severity = none
+# Suggest "Inline local variable."
+# Often a local variable makes the code more easily readable/understandable.
+dotnet_diagnostic.RCS1124.severity = suggestion
+dotnet_diagnostic.RCS1124FadeOut.severity = silent
+# Disable "Add summary element to documentation comment."
+# Redundant with CS1591
+# False-positive for partial classes (<summary> should only be on one)
+dotnet_diagnostic.RCS1139.severity = none
+# Disable "Add 'param' element to documentation comment."
+# Redundant with CS1573
+dotnet_diagnostic.RCS1141.severity = none
+# Suggest "Use conditional access"
+# Sometimes conditional access is more readable, sometimes it is not.
+dotnet_diagnostic.RCS1146.severity = suggestion
+# Suggest "Enum should declare explicit values."
+# I'm not convinced this is useful in all cases.  Suggest rather than warn.
+dotnet_diagnostic.RCS1161.severity = suggestion
+# Suggest "Unused parameter '{0}'"
+# Warns about lambda expressions, where parameter can't be removed
+# https://github.com/JosefPihrt/Roslynator/issues/400#issuecomment-415805957
+# Changing param name to _ would remove useful information
+dotnet_diagnostic.RCS1163.severity = suggestion
+# Disable "Unconstrained type parameter checked for null."
+# Logic which applies to null often does not apply to non-null default.
+dotnet_diagnostic.RCS1165.severity = none
+# Disable "Use 'return' instead of assignment"
+# Whether early return is preferable depends on other factors such as whether
+# additional pre-return use/assignment of the variable is likely to be added
+# and how the function reads.  Enforcing a general rule is counter-productive.
+dotnet_diagnostic.RCS1179.severity = none
+# Suggest "Convert comment to documentation comment."
+# Comments above fields are not necessarily suitable for field xmldoc.
+dotnet_diagnostic.RCS1181.severity = suggestion
+# Disable "Format initializer with single expression on single line"
+# Minimize diff for adding/removing by keeping each value on its own line.
+dotnet_diagnostic.RCS1183.severity = none
+# Suggest "Join string expressions."
+# Often strings are split for line length or logic-related reasons.
+dotnet_diagnostic.RCS1190.severity = suggestion
+# Ignore "Use regular string literal instead of verbatim string literal"
+# Using verbatim strings consistently (e.g. alignment, regex contexts) is good.
+dotnet_diagnostic.RCS1192.severity = silent
+# Disable "Implement exception constructors."
+# Redundant with CA1032
+dotnet_diagnostic.RCS1194.severity = none
+# Suggest "Use method chaining."
+# Use whichever seems appropriate for code readability/comprehensibility.
+dotnet_diagnostic.RCS1201.severity = suggestion
+# Ignore "Avoid nested ?: operators."
+# If the cases are simple and well-formatted, nesting can be preferable
+dotnet_diagnostic.RCS1238.severity = none
+# Disable "'{0}' should not be thrown by user code."
+# Redundant with CA2201
+dotnet_diagnostic.S112.severity = none
+# Disable "Remove the unused private method '{0}'."
+# Redundant with RCS1213, which doesn't gray+underline the entire method
+dotnet_diagnostic.S1144.severity = none
+# Disable "Redundant casts should not be used"
+# Doesn't consider nullability
+# https://github.com/SonarSource/sonar-dotnet/issues/3273
+#dotnet_diagnostic.S1905.severity = none
+# Disable "Extract this nested ternary operation into an independent statement."
+dotnet_diagnostic.S3358.severity = none
+# Disable "Exception types should be \"public\""
+# Redundant with CA1064
+dotnet_diagnostic.S3871.severity = none
+# Disable "Do not call 'GC.SuppressFinalize'."
+# Redundant with CA1816
+# Note: Also reports https://github.com/dotnet/roslyn-analyzers/issues/3675
+dotnet_diagnostic.S3971.severity = none
+# Suggest "Field names should not use Hungarian notation"
+# Too many false-positives
+dotnet_diagnostic.SA1305.severity = suggestion
+# Disable "Store files as UTF-8 with byte order mark"
+# Prefer UTF-8 without BOM
+dotnet_diagnostic.SA1412.severity = none
+# Ignore "Property documentation should have value"
+# Documenting property value is usually redundant
+dotnet_diagnostic.SA1609.severity = silent
+# Ignore "File header should have summary"
+# Purpose of file is usually self-evident (and documented by class doc)
+dotnet_diagnostic.SA1639.severity = silent
+## Disable "Do not prefix local calls with 'this.'"
+#dotnet_diagnostic.SX1101.severity = none
+# Disable "Field names should begin with underscore"
+# Don't want to use underscore for field names
+dotnet_diagnostic.SX1309.severity = none
+# Disable "Field names should begin with underscore" for static fields
+# Don't want to use underscore for static field names
+dotnet_diagnostic.SX1309S.severity = none
+
+## Diagnostics which are too noisy during initial development, but useful later
+# FIXME: CA1573/1591 duplicated with <NoWarn> in .csproj for old VS
+# Suggest "Do not pass literals as localized parameters"
+dotnet_diagnostic.CA1303.severity = suggestion
+# Suggest "Parameter has no matching param tag in the XML comment"
+dotnet_diagnostic.CS1573.severity = suggestion
+# Suggest "Missing XML comment for publicly visible type or member"
+dotnet_diagnostic.CS1591.severity = suggestion
+# Suggest "Add exception to documentation comment."
+# This is quite noisy for ArgumentException/ArgumentNullException already
+# indicated by type/nullability and likely <param>.
+dotnet_diagnostic.RCS1140.severity = suggestion
+# Suggest "Take the required action to fix the issue indicated by this 'FIXME' comment."
+dotnet_diagnostic.S1134.severity = suggestion
+# Suggest "Complete the task associated to this 'TODO' comment."
+dotnet_diagnostic.S1135.severity = suggestion
+# Suggest "Split this method into two, one handling parameters check and the other handling the asynchronous code."
+# There are differing opinions about whether parameter errors should be thrown
+# or returned in a faulted task.  S4457 advocates throwing.  David Fowler
+# advocates returning a faulted task:
+# https://github.com/davidfowl/AspNetCoreDiagnosticScenarios/blob/master/AsyncGuidance.md#prefer-asyncawait-over-directly-returning-task
+# During early development, the work to split async methods is not justified.
+# Prior to release, consider enforcing an approach consistently.
+dotnet_diagnostic.S4457.severity = suggestion
+# Suggest "Elements must be documented"
+dotnet_diagnostic.SA1600.severity = suggestion
+# Suggest "Partial elements must be documented"
+dotnet_diagnostic.SA1601.severity = suggestion
+
+[*.{cs,ps1}]
+indent_size = 4
+indent_style = space
+
+[*.{cshtml,csproj,css,html,js,json,jsx,props,scss,targets,ts,tsx,yaml,yml}]
+indent_size = 2
+indent_style = space
