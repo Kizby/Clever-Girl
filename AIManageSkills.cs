@@ -86,7 +86,15 @@ namespace XRL.World.Parts {
                 } else {
                     hasAllPowers = false;
                     if (skill.Cost <= budget) {
-                        pool.Add(Tuple.Create(skill.Class, skill.Cost, skill.Name));
+                        var canLearnSkill = skill.MeetsRequirements(ParentObject);
+                        foreach (var power in skill.Powers.Values.Where(p => p.Cost == 0)) {
+                            if (!power.MeetsRequirements(ParentObject)) {
+                                canLearnSkill = false;
+                            }
+                        }
+                        if (canLearnSkill) {
+                            pool.Add(Tuple.Create(skill.Class, skill.Cost, skill.Name));
+                        }
                     }
                 }
                 if (hasAllPowers) {
@@ -118,9 +126,14 @@ namespace XRL.World.Parts {
                     continue;
                 }
                 skills.Add(Skill.Name);
+                var canLearnSkill = Skill.MeetsRequirements(ParentObject);
                 var havePowers = 0;
+                var lockedPowers = 0;
                 var totalPowers = 0;
                 foreach (var Power in Skill.Powers.Values) {
+                    if (Power.Cost == 0 && !Power.MeetsRequirements(ParentObject)) {
+                        canLearnSkill = false;
+                    }
                     if (IgnoreSkills.Contains(Power.Name)) {
                         continue;
                     }
@@ -129,11 +142,18 @@ namespace XRL.World.Parts {
                     }
                     if (ParentObject.HasSkill(Power.Class)) {
                         ++havePowers;
+                    } else if (!Power.MeetsRequirements(ParentObject)) {
+                        ++lockedPowers;
                     }
                     ++totalPowers;
                 }
+                if (!canLearnSkill) {
+                    lockedPowers = totalPowers - havePowers;
+                }
+                var unlockedPowers = totalPowers - lockedPowers;
                 var prefix = havePowers == totalPowers ? "*" : LearningSkills.Contains(Skill.Name) ? "+" : "-";
-                strings.Add(prefix + " " + Skill.Name + ": " + havePowers + "/" + totalPowers);
+                var suffix = lockedPowers == 0 ? "" : "{{r| (" + lockedPowers + " locked)}}";
+                strings.Add(prefix + " " + Skill.Name + ": " + havePowers + "/" + unlockedPowers + suffix);
                 keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
             }
 
