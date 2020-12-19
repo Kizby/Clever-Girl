@@ -107,9 +107,17 @@ namespace XRL.World.Parts {
             if (0 < pool.Count) {
                 var which = pool.GetRandomElement(Utility.Random(this));
                 ParentObject.AddSkill(which.Item1);
-                stat.Penalty += which.Item2; // triggers a StatChangeEvent which will call this again until all points are spent
 
                 DidX("learn", which.Item3, "!", ColorAsGoodFor: ParentObject);
+                if (LearningSkills.Contains(which.Item1)) {
+                    // learned the skill, will also automatically learns free powers
+                    var skill = SkillFactory.Factory.SkillList[which.Item1];
+                    foreach (var power in skill.Powers.Values.Where(p => p.Cost == 0)) {
+                        DidX("learn", power.Name, "!", ColorAsGoodFor: ParentObject);
+                    }
+                }
+
+                stat.Penalty += which.Item2; // triggers a StatChangeEvent which will call this again until all points are spent
             }
         }
 
