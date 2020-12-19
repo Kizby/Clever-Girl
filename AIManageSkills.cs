@@ -155,7 +155,7 @@ namespace XRL.World.Parts {
                     }
                     ++totalPowers;
                 }
-                if (!canLearnSkill) {
+                if (!canLearnSkill && !ParentObject.HasSkill(Skill.Class)) {
                     lockedPowers = totalPowers - havePowers;
                 }
                 var unlockedPowers = totalPowers - lockedPowers;
