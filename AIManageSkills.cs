@@ -70,6 +70,9 @@ namespace XRL.World.Parts {
                 if (ParentObject.HasSkill(skill.Class)) {
                     foreach (var power in skill.Powers.Values) {
                         if (!ParentObject.HasSkill(power.Class) && !IgnoreSkills.Contains(power.Name)) {
+                            if (!ParentObject.IsCombatObject() && CombatSkills.Contains(power.Name)) {
+                                continue;
+                            }
                             hasAllPowers = false;
                             if (power.Cost > budget) {
                                 continue;
