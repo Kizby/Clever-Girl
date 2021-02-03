@@ -30,6 +30,7 @@ namespace XRL.World.CleverGirl {
             public string Display;
             public string Command;
             public char Key;
+            public Predicate<OwnerGetInventoryActionsEvent> Valid = _ => true;
         }
     }
 }
