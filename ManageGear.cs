@@ -14,6 +14,7 @@ namespace XRL.World.CleverGirl {
             Display = "manage g{{inventoryhotkey|e}}ar",
             Command = "CleverGirl_ManageGear",
             Key = 'e',
+            Valid = Utility.InventoryAction.Adjacent,
         };
 
         public static bool Manage(GameObject Leader, GameObject Follower) {
