@@ -73,6 +73,12 @@ namespace XRL.World.Parts {
                 }
                 e.RequestInterfaceExit();
             }
+            if (e.Command == Feed.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
+                if (Feed.DoFeed(e.Actor, e.Item)) {
+                    ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Feed");
+                }
+                e.RequestInterfaceExit();
+            }
             return true;
         }
 
