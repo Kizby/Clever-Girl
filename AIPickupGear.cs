@@ -134,6 +134,10 @@ namespace XRL.World.Parts {
                         Utility.MaybeLog("No way to equip " + thing.DisplayNameOnlyStripped + " on " + bodyPart.Name + " without being overburdened");
                         continue;
                     }
+                    if (thing.HasPart(typeof(Cursed))) {
+                        // just say no to the amaranthine prism
+                        continue;
+                    }
                     if (thingComparer.Compare(thing, bodyPart.Equipped) < 0) {
                         if (thing.pPhysics.InInventory == ParentObject) {
                             Utility.MaybeLog(thing.DisplayNameOnlyStripped + " in my inventory is already better than my " +
