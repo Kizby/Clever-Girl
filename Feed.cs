@@ -1,8 +1,11 @@
 namespace XRL.World.CleverGirl {
     using System;
     using System.Collections.Generic;
+    using XRL.Rules;
     using XRL.UI;
+    using XRL.World.Effects;
     using XRL.World.Parts;
+    using XRL.World.Parts.Mutation;
 
     public static class Feed {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
@@ -13,8 +16,10 @@ namespace XRL.World.CleverGirl {
             Valid = CanFeed,
         };
 
-        private static bool CanFeed(OwnerGetInventoryActionsEvent e) {
-            return Utility.InventoryAction.Adjacent(e) && (HasFood(e.Actor) || HasFood(e.Object) || NextToUsableCampfire(e.Actor));
+        private static bool CanFeed(OwnerGetInventoryActionsEvent E) {
+            return Utility.InventoryAction.Adjacent(E) &&
+                E.Object.HasPart(typeof(Stomach)) &&
+                (HasFood(E.Actor) || HasFood(E.Object) || NextToUsableCampfire(E.Actor));
         }
 
         private static bool HasFood(GameObject gameObject) {
@@ -86,7 +91,67 @@ namespace XRL.World.CleverGirl {
         }
 
         private static Func<GameObject, GameObject, bool> FeedItem(GameObject Item) {
-            return (GameObject Leader, GameObject Follower) => false;
+            return (Leader, Follower) => {
+                Food Food = Item.GetPart<Food>();
+                bool IsCarnivorous = Follower.HasPart(typeof(Carnivorous));
+                bool IsMeat = Item.HasTag("Meat");
+                bool Gross = Food.Gross;
+                if (Gross && IsCarnivorous && IsMeat) {
+                    // carnivores will eat even gross meat
+                    Gross = false;
+                }
+
+                Stomach Stomach = Follower.GetPart<Stomach>();
+                bool WillEat = !Gross;
+                bool Convincing = false;
+                if (!WillEat) {
+                    Convincing = Utility.Roll("2d6", Stomach) + Leader.StatMod("Ego") - 6 > Stats.GetCombatMA(Follower);
+                    if (Convincing) {
+                        WillEat = true;
+                    } else {
+                        // chance to agree regardless
+                        WillEat = Utility.Roll("1d6", Stomach) >= 6;
+                    }
+                }
+                if (!WillEat) {
+                    Popup.Show(Follower.ShortDisplayName + Follower.GetVerb("refuse") + " to eat " + Item.SituationalArticle() + " disgusting " + Item.DisplayNameSingle + "!");
+                    return true;
+                }
+
+                bool WasIll = Follower.HasEffect<Ill>();
+                // fake hunger so they'll eat whatever they're fed
+                Stomach.HungerLevel = 2;
+                GetInventoryActionsEvent GetInventoryActionsEvent = GetInventoryActionsEvent.FromPool(Follower, Item, null);
+                _ = Item.HandleEvent(GetInventoryActionsEvent);
+                if (!GetInventoryActionsEvent.Actions.ContainsKey("Eat")) {
+                    // can't eat it?
+                    return false;
+                }
+                _ = GetInventoryActionsEvent.Actions["Eat"].Process(Item, Follower);
+
+                string Message = Food.Message;
+                if (Message == "That hits the spot!" && Gross) {
+                    // no it doesn't
+                    Message = "Blech!";
+                }
+                if (Message.Length > 0) {
+                    Message = ". " + Message;
+                }
+                if (!Message.EndsWith("!") && !Message.EndsWith(".") && !Message.EndsWith("?")) {
+                    Message += ".";
+                }
+                if (!WasIll && Follower.HasEffect<Ill>()) {
+                    Message += " " + Follower.It + Follower.GetVerb("look") + " sick.";
+                }
+                if (Convincing) {
+                    Popup.Show(Leader.It + Leader.GetVerb("convince") + " " + Follower.SituationalArticle() + Follower.ShortDisplayName +
+                               " to eat " + Item.SituationalArticle() + " disgusting " + Item.DisplayNameSingle + Message);
+                } else {
+                    string Adverb = Gross ? " begrudgingly" : " hungrily";
+                    Popup.Show(Follower.ShortDisplayName + Adverb + Follower.GetVerb("eat") + " " + Item.SituationalArticle() + Item.DisplayNameSingle + Message);
+                }
+                return true;
+            };
         }
     }
 }
