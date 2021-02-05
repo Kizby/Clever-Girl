@@ -35,6 +35,10 @@ namespace XRL.World.CleverGirl {
                 // how are we interacting with someone not in a cell?
                 return false;
             }
+            if (true) {
+                // haven't implemented campfires yet
+                return false;
+            }
             return cell.GetObjectCountWithPart("Campfire") > 0 || cell.AnyAdjacentCell(adj => adj.GetObjectCountWithPart("Campfire") > 0);
         }
 
