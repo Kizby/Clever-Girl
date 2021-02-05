@@ -3,288 +3,184 @@
 		<AssemblyName>Mods</AssemblyName>
 		<PackageId>Mods</PackageId>
 		<Authors>gnarf, Armithaig, Freehold Games</Authors>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+		<TargetFramework>net46</TargetFramework>
 		<LangVersion>7</LangVersion>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<IntermediateOutputPath>../.ModAssemblyTemp</IntermediateOutputPath>
-		<OutputPath>../.ModAssemblyTemp</OutputPath>
+		<GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
 		<QudLibPath>C:/Program Files (x86)/Steam/steamapps/common/Caves of Qud/CoQ_Data\Managed/</QudLibPath>
 	</PropertyGroup>
 	<ItemGroup>
-		<Reference Include="System" />
-		<Reference Include="0Harmony">
-			<HintPath>$(QudLibPath)/0Harmony.dll</HintPath>
-		</Reference>
-		<Reference Include="AiUnityCommon">
-			<HintPath>$(QudLibPath)/AiUnityCommon.dll</HintPath>
-		</Reference>
-		<Reference Include="Ionic.Zip.Unity">
-			<HintPath>$(QudLibPath)/Ionic.Zip.Unity.dll</HintPath>
-		</Reference>
-		<Reference Include="mcs">
-			<HintPath>$(QudLibPath)/mcs.dll</HintPath>
-		</Reference>
-		<Reference Include="NAudio">
-			<HintPath>$(QudLibPath)/NAudio.dll</HintPath>
-		</Reference>
-		<Reference Include="Newtonsoft.Json">
-			<HintPath>$(QudLibPath)/Newtonsoft.Json.dll</HintPath>
-		</Reference>
-		<Reference Include="NLog">
-			<HintPath>$(QudLibPath)/NLog.dll</HintPath>
-		</Reference>
-		<Reference Include="NVorbis">
-			<HintPath>$(QudLibPath)/NVorbis.dll</HintPath>
-		</Reference>
-		<Reference Include="Rewired_Core">
-			<HintPath>$(QudLibPath)/Rewired_Core.dll</HintPath>
-		</Reference>
-		<Reference Include="Rewired_Linux_Lib">
-			<HintPath>$(QudLibPath)/Rewired_Linux_Lib.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.Purchasing">
-			<HintPath>$(QudLibPath)/UnityEngine.Purchasing.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityMultiSelectDropdown">
-			<HintPath>$(QudLibPath)/UnityMultiSelectDropdown.dll</HintPath>
-		</Reference>
-		<Reference Include="Microsoft.Contracts">
-			<HintPath>$(QudLibPath)/Microsoft.Contracts.dll</HintPath>
-		</Reference>
-		<Reference Include="Assembly-CSharp">
-			<HintPath>$(QudLibPath)/Assembly-CSharp.dll</HintPath>
-		</Reference>
-		<Reference Include="System.Configuration">
-			<HintPath>$(QudLibPath)/System.Configuration.dll</HintPath>
-		</Reference>
-		<Reference Include="System">
-			<HintPath>$(QudLibPath)/System.dll</HintPath>
-		</Reference>
-		<Reference Include="System.Runtime.Serialization">
-			<HintPath>$(QudLibPath)/System.Runtime.Serialization.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.AssetBundleModule">
-			<HintPath>$(QudLibPath)/UnityEngine.AssetBundleModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.DirectorModule">
-			<HintPath>$(QudLibPath)/UnityEngine.DirectorModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine">
-			<HintPath>$(QudLibPath)/UnityEngine.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.DSPGraphModule">
-			<HintPath>$(QudLibPath)/UnityEngine.DSPGraphModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.HotReloadModule">
-			<HintPath>$(QudLibPath)/UnityEngine.HotReloadModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ParticleSystemModule">
-			<HintPath>$(QudLibPath)/UnityEngine.ParticleSystemModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.Physics2DModule">
-			<HintPath>$(QudLibPath)/UnityEngine.Physics2DModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.SpriteMaskModule">
-			<HintPath>$(QudLibPath)/UnityEngine.SpriteMaskModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.SubsystemsModule">
-			<HintPath>$(QudLibPath)/UnityEngine.SubsystemsModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.TextCoreModule">
-			<HintPath>$(QudLibPath)/UnityEngine.TextCoreModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.TextRenderingModule">
-			<HintPath>$(QudLibPath)/UnityEngine.TextRenderingModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.TLSModule">
-			<HintPath>$(QudLibPath)/UnityEngine.TLSModule.dll</HintPath>
-		</Reference>
-		<Reference Include="Assembly-CSharp-firstpass">
-			<HintPath>$(QudLibPath)/Assembly-CSharp-firstpass.dll</HintPath>
-		</Reference>
-		<Reference Include="com.unity.multiplayer-hlapi.Runtime">
-			<HintPath>$(QudLibPath)/com.unity.multiplayer-hlapi.Runtime.dll</HintPath>
-		</Reference>
-		<Reference Include="Mono.Posix">
-			<HintPath>$(QudLibPath)/Mono.Posix.dll</HintPath>
-		</Reference>
-		<Reference Include="Mono.Security">
-			<HintPath>$(QudLibPath)/Mono.Security.dll</HintPath>
-		</Reference>
-		<Reference Include="mscorlib">
-			<HintPath>$(QudLibPath)/mscorlib.dll</HintPath>
-		</Reference>
-		<Reference Include="System.Core">
-			<HintPath>$(QudLibPath)/System.Core.dll</HintPath>
-		</Reference>
-		<Reference Include="System.Security">
-			<HintPath>$(QudLibPath)/System.Security.dll</HintPath>
-		</Reference>
-		<Reference Include="System.ServiceModel.Internals">
-			<HintPath>$(QudLibPath)/System.ServiceModel.Internals.dll</HintPath>
-		</Reference>
-		<Reference Include="System.Xml">
-			<HintPath>$(QudLibPath)/System.Xml.dll</HintPath>
-		</Reference>
-		<Reference Include="System.Xml.Linq">
-			<HintPath>$(QudLibPath)/System.Xml.Linq.dll</HintPath>
-		</Reference>
-		<Reference Include="Unity.Timeline">
-			<HintPath>$(QudLibPath)/Unity.Timeline.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.AccessibilityModule">
-			<HintPath>$(QudLibPath)/UnityEngine.AccessibilityModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.AIModule">
-			<HintPath>$(QudLibPath)/UnityEngine.AIModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.AndroidJNIModule">
-			<HintPath>$(QudLibPath)/UnityEngine.AndroidJNIModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.AnimationModule">
-			<HintPath>$(QudLibPath)/UnityEngine.AnimationModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.AudioModule">
-			<HintPath>$(QudLibPath)/UnityEngine.AudioModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ClothModule">
-			<HintPath>$(QudLibPath)/UnityEngine.ClothModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ClusterRendererModule">
-			<HintPath>$(QudLibPath)/UnityEngine.ClusterRendererModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.CrashReportingModule">
-			<HintPath>$(QudLibPath)/UnityEngine.CrashReportingModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.GameCenterModule">
-			<HintPath>$(QudLibPath)/UnityEngine.GameCenterModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.GridModule">
-			<HintPath>$(QudLibPath)/UnityEngine.GridModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ImageConversionModule">
-			<HintPath>$(QudLibPath)/UnityEngine.ImageConversionModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.JSONSerializeModule">
-			<HintPath>$(QudLibPath)/UnityEngine.JSONSerializeModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.LocalizationModule">
-			<HintPath>$(QudLibPath)/UnityEngine.LocalizationModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.PerformanceReportingModule">
-			<HintPath>$(QudLibPath)/UnityEngine.PerformanceReportingModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ScreenCaptureModule">
-			<HintPath>$(QudLibPath)/UnityEngine.ScreenCaptureModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.TerrainPhysicsModule">
-			<HintPath>$(QudLibPath)/UnityEngine.TerrainPhysicsModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.TilemapModule">
-			<HintPath>$(QudLibPath)/UnityEngine.TilemapModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UI">
-			<HintPath>$(QudLibPath)/UnityEngine.UI.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UIElementsModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UIElementsModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityAnalyticsModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityAnalyticsModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityWebRequestAssetBundleModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityWebRequestAssetBundleModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityWebRequestModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityWebRequestModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityWebRequestTextureModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.VFXModule">
-			<HintPath>$(QudLibPath)/UnityEngine.VFXModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.WindModule">
-			<HintPath>$(QudLibPath)/UnityEngine.WindModule.dll</HintPath>
-		</Reference>
-		<Reference Include="Unity.Analytics.DataPrivacy">
-			<HintPath>$(QudLibPath)/Unity.Analytics.DataPrivacy.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.Advertisements">
-			<HintPath>$(QudLibPath)/UnityEngine.Advertisements.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ClusterInputModule">
-			<HintPath>$(QudLibPath)/UnityEngine.ClusterInputModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.CoreModule">
-			<HintPath>$(QudLibPath)/UnityEngine.CoreModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.IMGUIModule">
-			<HintPath>$(QudLibPath)/UnityEngine.IMGUIModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.InputLegacyModule">
-			<HintPath>$(QudLibPath)/UnityEngine.InputLegacyModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.InputModule">
-			<HintPath>$(QudLibPath)/UnityEngine.InputModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.Monetization">
-			<HintPath>$(QudLibPath)/UnityEngine.Monetization.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.PhysicsModule">
-			<HintPath>$(QudLibPath)/UnityEngine.PhysicsModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.ProfilerModule">
-			<HintPath>$(QudLibPath)/UnityEngine.ProfilerModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.SharedInternalsModule">
-			<HintPath>$(QudLibPath)/UnityEngine.SharedInternalsModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.SpriteShapeModule">
-			<HintPath>$(QudLibPath)/UnityEngine.SpriteShapeModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.StreamingModule">
-			<HintPath>$(QudLibPath)/UnityEngine.StreamingModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.SubstanceModule">
-			<HintPath>$(QudLibPath)/UnityEngine.SubstanceModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.TerrainModule">
-			<HintPath>$(QudLibPath)/UnityEngine.TerrainModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UIModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UIModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UmbraModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UmbraModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UNETModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UNETModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityConnectModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityConnectModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityTestProtocolModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityTestProtocolModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityWebRequestAudioModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityWebRequestAudioModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.UnityWebRequestWWWModule">
-			<HintPath>$(QudLibPath)/UnityEngine.UnityWebRequestWWWModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.VehiclesModule">
-			<HintPath>$(QudLibPath)/UnityEngine.VehiclesModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.VideoModule">
-			<HintPath>$(QudLibPath)/UnityEngine.VideoModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.VRModule">
-			<HintPath>$(QudLibPath)/UnityEngine.VRModule.dll</HintPath>
-		</Reference>
-		<Reference Include="UnityEngine.XRModule">
-			<HintPath>$(QudLibPath)/UnityEngine.XRModule.dll</HintPath>
-		</Reference>
+		<Reference Include="$(QudLibPath)/0Harmony.dll" />
+		<Reference Include="$(QudLibPath)/Accessibility.dll" />
+		<Reference Include="$(QudLibPath)/AiUnityCommon.dll" />
+		<Reference Include="$(QudLibPath)/Assembly-CSharp.dll" />
+		<Reference Include="$(QudLibPath)/Assembly-CSharp-firstpass.dll" />
+		<Reference Include="$(QudLibPath)/Ionic.Zip.Unity.dll" />
+		<Reference Include="$(QudLibPath)/Microsoft.CodeAnalysis.CSharp.dll" />
+		<Reference Include="$(QudLibPath)/Microsoft.CodeAnalysis.dll" />
+		<Reference Include="$(QudLibPath)/Microsoft.Contracts.dll" />
+		<Reference Include="$(QudLibPath)/Mono.Data.Sqlite.dll" />
+		<Reference Include="$(QudLibPath)/Mono.Posix.dll" />
+		<Reference Include="$(QudLibPath)/Mono.Security.dll" />
+		<Reference Include="$(QudLibPath)/Mono.WebBrowser.dll" />
+		<Reference Include="$(QudLibPath)/mscorlib.dll" />
+		<Reference Include="$(QudLibPath)/NAudio.dll" />
+		<Reference Include="$(QudLibPath)/netstandard.dll" />
+		<Reference Include="$(QudLibPath)/Newtonsoft.Json.dll" />
+		<Reference Include="$(QudLibPath)/NLog.dll" />
+		<Reference Include="$(QudLibPath)/Novell.Directory.Ldap.dll" />
+		<Reference Include="$(QudLibPath)/nunit.framework.dll" />
+		<Reference Include="$(QudLibPath)/NVorbis.dll" />
+		<Reference Include="$(QudLibPath)/PlayFab.dll" />
+		<Reference Include="$(QudLibPath)/Rewired_Core.dll" />
+		<Reference Include="$(QudLibPath)/Rewired_Linux.dll" />
+		<Reference Include="$(QudLibPath)/RoslynCSharp.Compiler.dll" />
+		<Reference Include="$(QudLibPath)/RoslynCSharp.dll" />
+		<Reference Include="$(QudLibPath)/RoslynCSharp.Examples.dll" />
+		<Reference Include="$(QudLibPath)/System.AppContext.dll" />
+		<Reference Include="$(QudLibPath)/System.Collections.Concurrent.dll" />
+		<Reference Include="$(QudLibPath)/System.Collections.dll" />
+		<Reference Include="$(QudLibPath)/System.Collections.Immutable.dll" />
+		<Reference Include="$(QudLibPath)/System.ComponentModel.Composition.dll" />
+		<Reference Include="$(QudLibPath)/System.ComponentModel.DataAnnotations.dll" />
+		<Reference Include="$(QudLibPath)/System.Configuration.dll" />
+		<Reference Include="$(QudLibPath)/System.Console.dll" />
+		<Reference Include="$(QudLibPath)/System.Core.dll" />
+		<Reference Include="$(QudLibPath)/System.Data.dll" />
+		<Reference Include="$(QudLibPath)/System.Design.dll" />
+		<Reference Include="$(QudLibPath)/System.Diagnostics.Debug.dll" />
+		<Reference Include="$(QudLibPath)/System.Diagnostics.FileVersionInfo.dll" />
+		<Reference Include="$(QudLibPath)/System.Diagnostics.StackTrace.dll" />
+		<Reference Include="$(QudLibPath)/System.Diagnostics.Tools.dll" />
+		<Reference Include="$(QudLibPath)/System.DirectoryServices.dll" />
+		<Reference Include="$(QudLibPath)/System.dll" />
+		<Reference Include="$(QudLibPath)/System.Drawing.Design.dll" />
+		<Reference Include="$(QudLibPath)/System.Drawing.dll" />
+		<Reference Include="$(QudLibPath)/System.EnterpriseServices.dll" />
+		<Reference Include="$(QudLibPath)/System.Globalization.dll" />
+		<Reference Include="$(QudLibPath)/System.Globalization.Extensions.dll" />
+		<Reference Include="$(QudLibPath)/System.IO.Compression.dll" />
+		<Reference Include="$(QudLibPath)/System.IO.Compression.FileSystem.dll" />
+		<Reference Include="$(QudLibPath)/System.IO.dll" />
+		<Reference Include="$(QudLibPath)/System.IO.FileSystem.dll" />
+		<Reference Include="$(QudLibPath)/System.IO.FileSystem.Primitives.dll" />
+		<Reference Include="$(QudLibPath)/System.Linq.dll" />
+		<Reference Include="$(QudLibPath)/System.Linq.Expressions.dll" />
+		<Reference Include="$(QudLibPath)/System.Net.Http.dll" />
+		<Reference Include="$(QudLibPath)/System.Numerics.dll" />
+		<Reference Include="$(QudLibPath)/System.Reflection.dll" />
+		<Reference Include="$(QudLibPath)/System.Reflection.Extensions.dll" />
+		<Reference Include="$(QudLibPath)/System.Reflection.Metadata.dll" />
+		<Reference Include="$(QudLibPath)/System.Reflection.Primitives.dll" />
+		<Reference Include="$(QudLibPath)/System.Resources.ResourceManager.dll" />
+		<Reference Include="$(QudLibPath)/System.Runtime.dll" />
+		<Reference Include="$(QudLibPath)/System.Runtime.Extensions.dll" />
+		<Reference Include="$(QudLibPath)/System.Runtime.InteropServices.dll" />
+		<Reference Include="$(QudLibPath)/System.Runtime.Numerics.dll" />
+		<Reference Include="$(QudLibPath)/System.Runtime.Serialization.dll" />
+		<Reference Include="$(QudLibPath)/System.Runtime.Serialization.Formatters.Soap.dll" />
+		<Reference Include="$(QudLibPath)/System.Runtime.Serialization.Xml.dll" />
+		<Reference Include="$(QudLibPath)/System.Security.Cryptography.Algorithms.dll" />
+		<Reference Include="$(QudLibPath)/System.Security.Cryptography.Encoding.dll" />
+		<Reference Include="$(QudLibPath)/System.Security.Cryptography.Primitives.dll" />
+		<Reference Include="$(QudLibPath)/System.Security.Cryptography.X509Certificates.dll" />
+		<Reference Include="$(QudLibPath)/System.Security.dll" />
+		<Reference Include="$(QudLibPath)/System.ServiceModel.Internals.dll" />
+		<Reference Include="$(QudLibPath)/System.Text.Encoding.CodePages.dll" />
+		<Reference Include="$(QudLibPath)/System.Text.Encoding.dll" />
+		<Reference Include="$(QudLibPath)/System.Text.Encoding.Extensions.dll" />
+		<Reference Include="$(QudLibPath)/System.Threading.dll" />
+		<Reference Include="$(QudLibPath)/System.Threading.Tasks.dll" />
+		<Reference Include="$(QudLibPath)/System.Threading.Tasks.Extensions.dll" />
+		<Reference Include="$(QudLibPath)/System.Threading.Tasks.Parallel.dll" />
+		<Reference Include="$(QudLibPath)/System.Threading.Thread.dll" />
+		<Reference Include="$(QudLibPath)/System.Transactions.dll" />
+		<Reference Include="$(QudLibPath)/System.ValueTuple.dll" />
+		<Reference Include="$(QudLibPath)/System.Web.ApplicationServices.dll" />
+		<Reference Include="$(QudLibPath)/System.Web.dll" />
+		<Reference Include="$(QudLibPath)/System.Web.Services.dll" />
+		<Reference Include="$(QudLibPath)/System.Windows.Forms.dll" />
+		<Reference Include="$(QudLibPath)/System.Xml.dll" />
+		<Reference Include="$(QudLibPath)/System.Xml.Linq.dll" />
+		<Reference Include="$(QudLibPath)/System.Xml.ReaderWriter.dll" />
+		<Reference Include="$(QudLibPath)/System.Xml.XDocument.dll" />
+		<Reference Include="$(QudLibPath)/System.Xml.XmlDocument.dll" />
+		<Reference Include="$(QudLibPath)/System.Xml.XPath.dll" />
+		<Reference Include="$(QudLibPath)/System.Xml.XPath.XDocument.dll" />
+		<Reference Include="$(QudLibPath)/Trivial.CodeSecurity.dll" />
+		<Reference Include="$(QudLibPath)/Trivial.Mono.Cecil.dll" />
+		<Reference Include="$(QudLibPath)/Trivial.Mono.Cecil.Mdb.dll" />
+		<Reference Include="$(QudLibPath)/Trivial.Mono.Cecil.Pdb.dll" />
+		<Reference Include="$(QudLibPath)/Unity.Analytics.DataPrivacy.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.AccessibilityModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.Advertisements.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.AIModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.AndroidJNIModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.AnimationModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.AssetBundleModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.AudioModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.ClothModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.ClusterInputModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.ClusterRendererModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.CoreModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.CrashReportingModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.DirectorModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.DSPGraphModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.GameCenterModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.GridModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.HotReloadModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.ImageConversionModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.IMGUIModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.InputLegacyModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.InputModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.JSONSerializeModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.LocalizationModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.Monetization.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.ParticleSystemModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.PerformanceReportingModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.Physics2DModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.PhysicsModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.ProfilerModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.Purchasing.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.ScreenCaptureModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.SharedInternalsModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.SpatialTracking.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.SpriteMaskModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.SpriteShapeModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.StreamingModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.SubstanceModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.SubsystemsModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.TerrainModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.TerrainPhysicsModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.TestRunner.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.TextCoreModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.TextRenderingModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.TilemapModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.TLSModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UI.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UIElementsModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UIElementsNativeModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UIModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UmbraModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UNETModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityAnalyticsModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityConnectModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityTestProtocolModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityWebRequestAssetBundleModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityWebRequestAudioModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityWebRequestModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityWebRequestTextureModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.UnityWebRequestWWWModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.VehiclesModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.VFXModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.VideoModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.VRModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.WindModule.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.XR.LegacyInputHelpers.dll" />
+		<Reference Include="$(QudLibPath)/UnityEngine.XRModule.dll" />
+		<Reference Include="$(QudLibPath)/Unity.MemoryProfiler.dll" />
+		<Reference Include="$(QudLibPath)/UnityMultiSelectDropdown.dll" />
+		<Reference Include="$(QudLibPath)/Unity.Timeline.dll" />
 	</ItemGroup>
 </Project>
