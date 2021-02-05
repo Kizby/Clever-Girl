@@ -20,14 +20,18 @@ namespace XRL.World.Parts {
                     return true;
                 }
                 var actions = new List<Utility.InventoryAction>{
-                        e.Object.HasPart("CleverGirl_AIPickupGear") ? CleverGirl_AIPickupGear.DISABLE : CleverGirl_AIPickupGear.ENABLE,
+                        CleverGirl_AIPickupGear.ENABLE,
+                        CleverGirl_AIPickupGear.DISABLE,
                         CleverGirl_AIManageSkills.ACTION,
                         CleverGirl_AIManageMutations.ACTION,
                         CleverGirl_AIManageAttributes.ACTION,
                         ManageGear.ACTION,
+                        Feed.ACTION,
                     };
                 foreach (var action in actions) {
-                    _ = e.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
+                    if (action.Valid(e)) {
+                        _ = e.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
+                    }
                 }
             }
             return true;
@@ -66,6 +70,12 @@ namespace XRL.World.Parts {
             if (e.Command == ManageGear.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
                 if (ManageGear.Manage(e.Actor, e.Item)) {
                     ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Manage Gear");
+                }
+                e.RequestInterfaceExit();
+            }
+            if (e.Command == Feed.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
+                if (Feed.DoFeed(e.Actor, e.Item)) {
+                    ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Feed");
                 }
                 e.RequestInterfaceExit();
             }

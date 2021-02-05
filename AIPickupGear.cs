@@ -17,12 +17,14 @@ namespace XRL.World.Parts {
             Display = "enable gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_EnableGearPickup",
             Key = 'p',
+            Valid = e => !e.Object.HasPart(typeof(CleverGirl_AIPickupGear)),
         };
         public static readonly Utility.InventoryAction DISABLE = new Utility.InventoryAction {
             Name = "Clever Girl - Disable Gear Pickup",
             Display = "disable gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_DisableGearPickup",
             Key = 'p',
+            Valid = e => e.Object.HasPart(typeof(CleverGirl_AIPickupGear)),
         };
 
         public override bool WantTurnTick() => true;
