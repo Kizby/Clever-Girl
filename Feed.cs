@@ -133,7 +133,7 @@ namespace XRL.World.CleverGirl {
                 }
                 _ = GetInventoryActionsEvent.Actions["Eat"].Process(Item, Follower);
 
-                string Message = Food.Message;
+                string Message = Utility.AdjustSubject(Food.Message, Follower);
                 if (Message == "That hits the spot!" && Gross) {
                     // no it doesn't
                     Message = "Blech!";
