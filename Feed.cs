@@ -118,7 +118,7 @@ namespace XRL.World.CleverGirl {
                     }
                 }
                 if (!WillEat) {
-                    Popup.Show(Follower.ShortDisplayName + Follower.GetVerb("refuse") + " to eat " + Item.SituationalArticle() + " disgusting " + Item.DisplayNameSingle + "!");
+                    Popup.Show(Follower.The + Follower.ShortDisplayName + Follower.GetVerb("refuse") + " to eat " + Item.SituationalArticle() + "disgusting " + Item.DisplayNameSingle + "!");
                     return true;
                 }
 
@@ -149,10 +149,10 @@ namespace XRL.World.CleverGirl {
                 }
                 if (Convincing) {
                     Popup.Show(Leader.It + Leader.GetVerb("convince") + " " + Follower.SituationalArticle() + Follower.ShortDisplayName +
-                               " to eat " + Item.SituationalArticle() + " disgusting " + Item.DisplayNameSingle + Message);
+                               " to eat " + Item.SituationalArticle() + "disgusting " + Item.DisplayNameSingle + Message);
                 } else {
                     string Adverb = Gross ? " begrudgingly" : " hungrily";
-                    Popup.Show(Follower.ShortDisplayName + Adverb + Follower.GetVerb("eat") + " " + Item.SituationalArticle() + Item.DisplayNameSingle + Message);
+                    Popup.Show(Follower.The + Follower.ShortDisplayName + Adverb + Follower.GetVerb("eat") + " " + Item.SituationalArticle() + Item.DisplayNameSingle + Message);
                 }
                 return true;
             };
