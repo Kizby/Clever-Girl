@@ -107,7 +107,7 @@ namespace XRL.World.Parts {
                     var possibleMutations = mutations.GetMutatePool()
                                                      .Shuffle(Random);
                     if (!ParentObject.IsCombatObject()) {
-                        // don't offer combat mutations to NoCombat companions
+                        // don't offer combat mutations to NoCombat followers
                         possibleMutations = possibleMutations.Where(m => !CombatMutations.Contains(m.DisplayName))
                                                              .ToList();
                     }
