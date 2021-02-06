@@ -44,8 +44,10 @@ namespace XRL.World.CleverGirl {
             return RegexCache[Regex].Replace(String, Replacement);
         }
 
-        // a lot of messages in the game hardcode "you" pronouns and need reconjugating
-        // I have /zero/ interest in generalizing distinguishing verbs, so hardcode the ones we've seen and treat as an object otherwise
+        /// <summary>
+        /// a lot of messages in the game hardcode "you" pronouns and need reconjugating
+        /// I have /zero/ interest in generalizing distinguishing verbs, so hardcode the ones we've seen and treat as an object otherwise
+        /// </summary>
         public static string AdjustSubject(string Message, GameObject Subject) {
             if (Subject.IsPlural || Subject.IsPseudoPlural) {
                 Message = RegexReplace(Message, "\\bUsted ama\\b", "Ustedes aman");
