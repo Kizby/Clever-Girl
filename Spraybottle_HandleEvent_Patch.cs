@@ -13,6 +13,7 @@ namespace XRL.World.Parts.CleverGirl {
             foreach (var inst in instructions) {
                 if (inst.Is(OpCodes.Callvirt, AccessTools.Method(typeof(GameObject), "get_Body"))) {
                     // instead of an option of player equipped and inventory items, use PickObject
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
                     yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(Spraybottle_HandleEvent_Patch), "PickObject"));
                     Skipping = true;
                 }
@@ -33,7 +34,7 @@ namespace XRL.World.Parts.CleverGirl {
                 }
             }
         }
-        public static GameObject PickObject(GameObject Actor) {
+        public static GameObject PickObject(GameObject Actor, Spraybottle Bottle) {
             GameObject target = Actor;
             if (Actor.IsPlayer()) {
                 Cell cell = Actor.PickDirection();
@@ -45,6 +46,7 @@ namespace XRL.World.Parts.CleverGirl {
             var objects = target.Body.GetEquippedObjects();
             if (target == Actor) {
                 objects.AddRange(target.Inventory.GetObjects());
+                objects.Remove(Bottle.ParentObject);
             } else {
                 objects.Add(target);
             }
