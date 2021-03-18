@@ -30,7 +30,7 @@ namespace XRL.World.Parts {
                     };
                 foreach (var action in actions) {
                     if (action.Valid(e)) {
-                        _ = e.AddAction(action.Name, action.Display, action.Command, action.Key, true, WorksAtDistance: true);
+                        _ = e.AddAction(action.Name, action.Display, action.Command, Key: action.Key, FireOnActor: true, WorksAtDistance: true);
                     }
                 }
             }
