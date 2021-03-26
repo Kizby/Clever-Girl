@@ -46,7 +46,7 @@ namespace XRL.World.Parts.CleverGirl {
             var objects = target.Body.GetEquippedObjects();
             if (target == Actor) {
                 objects.AddRange(target.Inventory.GetObjects());
-                objects.Remove(Bottle.ParentObject);
+                _ = objects.Remove(Bottle.ParentObject);
             } else {
                 objects.Add(target);
             }

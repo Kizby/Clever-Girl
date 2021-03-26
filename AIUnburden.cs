@@ -38,7 +38,7 @@ namespace XRL.World.Parts {
                 var toDrop = ((excess - 1) / obj.WeightEach) + 1; // ceil(excess / obj.WeightEach)
                 if (toDrop < obj.Count) {
                     // only drop what we need to
-                    obj.SplitStack(toDrop, ParentObject);
+                    _ = obj.SplitStack(toDrop, ParentObject);
                 } // else drop the whole stack
 
                 excess -= obj.Weight;

@@ -156,12 +156,13 @@ namespace XRL.World.Parts {
                         _ = mutations.AddChimericBodyPart();
                     }
 
-                    NewMutationSavings -= 4;
-                    ParentObject.UseMP(4);
+                    if (ParentObject.UseMP(4)) {
+                        NewMutationSavings -= 4;
+                    }
                 }
             } else {
                 ParentObject.GetPart<Mutations>().LevelMutation(which, which.BaseLevel + 1);
-                ParentObject.UseMP(1);
+                _ = ParentObject.UseMP(1);
             }
         }
 

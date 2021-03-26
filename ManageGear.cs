@@ -286,7 +286,7 @@ namespace XRL.World.CleverGirl {
                 var equippedCount = Item.GetPart<Stacker>()?.StackCount ?? 1;
                 foreach (var otherItem in Yoinkee.Inventory.Objects) {
                     if (Item.SameAs(otherItem)) {
-                        otherItem.SplitStack(equippedCount, Yoinkee);
+                        _ = otherItem.SplitStack(equippedCount, Yoinkee);
                         Item = otherItem;
                         break;
                     }
