@@ -63,7 +63,7 @@ namespace XRL.World.CleverGirl {
                     if (loopPart.Cybernetics != null) {
                         if (screenTab == ScreenTab.Cybernetics) {
                             relevantBodyParts.Add(loopPart);
-                            allEquippedOrDefault.Add(null);
+                            allEquippedOrDefault.Add(loopPart.Cybernetics);
                             allEquipped.Add(loopPart.Cybernetics);
                             allCybernetics.Add(loopPart.Cybernetics);
                         }
@@ -205,7 +205,7 @@ namespace XRL.World.CleverGirl {
                                 ++windowStart;
                             }
                             ++selectedIndex;
-                        } else if ((Keyboard.vkCode == Keys.Left || keys == Keys.NumPad4) && allEquipped[selectedIndex] != null) {
+                        } else if (screenTab != ScreenTab.Cybernetics && (Keyboard.vkCode == Keys.Left || keys == Keys.NumPad4) && allEquipped[selectedIndex] != null) {
                             var bodyPart = relevantBodyParts[selectedIndex];
                             var oldEquipped = allEquipped[selectedIndex];
                             _ = Follower.FireEvent(Event.New("CommandUnequipObject", "BodyPart", bodyPart));
@@ -215,7 +215,7 @@ namespace XRL.World.CleverGirl {
                                 Changed = true;
                                 CacheValid = false;
                             }
-                        } else if (keys == Keys.Tab) {
+                        } else if (screenTab != ScreenTab.Cybernetics && keys == Keys.Tab) {
                             if (!CanChangePrimaryLimb) {
                                 Popup.Show(Follower.The + Follower.ShortDisplayName + " can't switch primary limbs in combat.");
                             } else if (relevantBodyParts[selectedIndex].Abstract) {
@@ -234,13 +234,15 @@ namespace XRL.World.CleverGirl {
                                 if (allEquipped[pressedIndex] != null) {
                                     var oldEquipped = allEquipped[pressedIndex];
                                     EquipmentAPI.TwiddleObject(Follower, oldEquipped, ref Done);
-                                    if (relevantBodyParts[pressedIndex].Equipped != oldEquipped) {
+                                    var bodyPart = relevantBodyParts[pressedIndex];
+                                    var curEquipped = screenTab == ScreenTab.Cybernetics ? bodyPart.Cybernetics : bodyPart.Equipped;
+                                    if (curEquipped != oldEquipped) {
                                         // for convenience, put it in the leader's inventory
                                         Yoink(oldEquipped, Follower, Leader);
                                         Changed = true;
                                         CacheValid = false;
                                     }
-                                } else if (ShowBodypartEquipUI(Leader, Follower, relevantBodyParts[pressedIndex])) {
+                                } else if (screenTab == ScreenTab.Equipment && ShowBodypartEquipUI(Leader, Follower, relevantBodyParts[pressedIndex])) {
                                     Changed = true;
                                     CacheValid = false;
                                 }
