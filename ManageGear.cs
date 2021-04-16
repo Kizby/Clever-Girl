@@ -273,6 +273,10 @@ namespace XRL.World.CleverGirl {
                     if (toEquip == null) {
                         return false;
                     }
+                    if ((toEquip.GetPart<Stacker>()?.StackCount ?? 1) > 1) {
+                        // pick one off the stack for the follower
+                        _ = toEquip.SplitStack(1);
+                    }
                     _ = Follower.FireEvent(Event.New("CommandEquipObject", "Object", toEquip, "BodyPart", SelectedBodyPart));
                     return true;
                 }
