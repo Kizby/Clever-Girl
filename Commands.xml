@@ -1,0 +1,3 @@
+<commands>
+    <command ID="CleverGirl_CmdWaitUntilPartyHealed" DisplayText="Rest until party healed" Category="Actions"></command>
+</commands>

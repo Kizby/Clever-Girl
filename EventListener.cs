@@ -4,14 +4,18 @@ namespace XRL.World.Parts {
     using System.Xml;
     using System.Xml.Schema;
     using System.Xml.Serialization;
+    using XRL.UI;
+    using XRL.World.Capabilities;
     using XRL.World.CleverGirl;
 
     [Serializable]
-    public class CleverGirl_InteractListener : IPart, IXmlSerializable {
+    public class CleverGirl_EventListener : IPart, IXmlSerializable {
+        public bool RestingUntilPartyHealed;
         public override bool WantEvent(int ID, int cascade) =>
             base.WantEvent(ID, cascade) ||
             ID == OwnerGetInventoryActionsEvent.ID ||
-            ID == InventoryActionEvent.ID;
+            ID == InventoryActionEvent.ID ||
+            ID == CommandEvent.ID;
 
         public override bool HandleEvent(OwnerGetInventoryActionsEvent e) {
             if (e.Actor == ParentObject && e.Object?.IsPlayerLed() == true && !e.Object.IsPlayer()) {
@@ -78,6 +82,18 @@ namespace XRL.World.Parts {
                     ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Feed");
                 }
                 e.RequestInterfaceExit();
+            }
+            return true;
+        }
+
+        public override bool HandleEvent(CommandEvent e) {
+            if (e.Command == "CleverGirl_CmdWaitUntilPartyHealed" && !AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
+                AutoAct.Setting = "r";
+                The.Game.ActionManager.RestingUntilHealed = true;
+                The.Game.ActionManager.RestingUntilHealedCount = 0;
+                RestingUntilPartyHealed = true;
+                _ = ParentObject.UseEnergy(1000, "Pass");
+                Loading.SetLoadingStatus("Resting until party healed...");
             }
             return true;
         }
