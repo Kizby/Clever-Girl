@@ -84,9 +84,7 @@ namespace XRL.World.CleverGirl {
             foreach (var instruction in instructions) {
                 if (instruction.Is(OpCodes.Stfld, AccessTools.Field(typeof(ActionManager), "RestingUntilHealed"))) {
                     // when we set RestingUntilHealed back to false, set RestingUntilPartyHealed too
-                    yield return new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(CleverGirl_EventListener), "RestingUntilPartyHealed"));
-                    yield return new CodeInstruction(OpCodes.Ldarg_0);
-                    yield return new CodeInstruction(OpCodes.Ldc_I4_0);
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ActionManager_RunSegment_Patch), "ResetPartyHealing"));
                 }
                 if (instruction.Is(OpCodes.Ldstr, "Resting until healed... Turn: ")) {
                     // use custom logic instead of a hard-coded constant
@@ -110,13 +108,22 @@ namespace XRL.World.CleverGirl {
         }
         public static int AddFollowerPenalties(int PlayerPenalty) {
             int TotalPenalty = PlayerPenalty;
-            Cell currentCell = The.PlayerCell;
-            foreach (GameObject gameObject in currentCell.ParentZone.FastFloodVisibility(currentCell.X, currentCell.Y, 30, "Brain", The.Player)) {
-                if (gameObject.IsPlayerLed()) {
-                    TotalPenalty += gameObject.GetStat("Hitpoints").Penalty;
+            if (The.Player.GetPart<CleverGirl_EventListener>()?.RestingUntilPartyHealed == true) {
+                Cell currentCell = The.PlayerCell;
+                foreach (GameObject gameObject in currentCell.ParentZone.FastFloodVisibility(currentCell.X, currentCell.Y, 30, "Brain", The.Player)) {
+                    if (gameObject.IsPlayerLed()) {
+                        TotalPenalty += gameObject.GetStat("Hitpoints").Penalty;
+                    }
                 }
             }
             return TotalPenalty;
+        }
+
+        public static void ResetPartyHealing() {
+            CleverGirl_EventListener part = The.Player.GetPart<CleverGirl_EventListener>();
+            if (part != null) {
+                part.RestingUntilPartyHealed = false;
+            }
         }
     }
 }
