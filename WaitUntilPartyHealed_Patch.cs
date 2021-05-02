@@ -67,7 +67,7 @@ namespace XRL.World.CleverGirl {
                 } else if (InterruptNextBranch && instruction.Branches(out _)) {
                     InterruptNextBranch = false;
                     yield return new CodeInstruction(OpCodes.Bne_Un_S, BranchTarget);
-                    yield return new CodeInstruction(OpCodes.Ldstr, "CmdWaitUntilPartyHealed");
+                    yield return new CodeInstruction(OpCodes.Ldstr, "CleverGirl_CmdWaitUntilPartyHealed");
                     yield return new CodeInstruction(OpCodes.Stloc_S, Str1Var);
                     yield return new CodeInstruction(OpCodes.Ldloc_S, Num2Var).WithLabels(BranchTarget);
                     yield return new CodeInstruction(OpCodes.Ldc_I4_6);

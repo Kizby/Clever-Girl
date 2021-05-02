@@ -87,7 +87,7 @@ namespace XRL.World.Parts {
         }
 
         public override bool HandleEvent(CommandEvent e) {
-            if (e.Command == "CmdWaitUntilPartyHealed" && !AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
+            if (e.Command == "CleverGirl_CmdWaitUntilPartyHealed" && !AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
                 AutoAct.Setting = "r";
                 The.Game.ActionManager.RestingUntilHealed = true;
                 The.Game.ActionManager.RestingUntilHealedCount = 0;
