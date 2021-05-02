@@ -3,6 +3,7 @@ namespace XRL.World.CleverGirl {
     using System.Collections.Generic;
     using System.Reflection.Emit;
     using XRL.Core;
+    using XRL.World.Parts;
 
     [HarmonyPatch(typeof(XRLCore), "PlayerTurn")]
     public static class XRLCore_PlayerTurn_Patch {
@@ -73,6 +74,49 @@ namespace XRL.World.CleverGirl {
                 }
                 yield return instruction;
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(ActionManager), "RunSegment")]
+    public static class ActionManager_RunSegment_Patch {
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) {
+            bool LookingForPenalty = false;
+            foreach (var instruction in instructions) {
+                if (instruction.Is(OpCodes.Stfld, AccessTools.Field(typeof(ActionManager), "RestingUntilHealed"))) {
+                    // when we set RestingUntilHealed back to false, set RestingUntilPartyHealed too
+                    yield return new CodeInstruction(OpCodes.Stfld, AccessTools.Field(typeof(CleverGirl_EventListener), "RestingUntilPartyHealed"));
+                    yield return new CodeInstruction(OpCodes.Ldarg_0);
+                    yield return new CodeInstruction(OpCodes.Ldc_I4_0);
+                }
+                if (instruction.Is(OpCodes.Ldstr, "Resting until healed... Turn: ")) {
+                    // use custom logic instead of a hard-coded constant
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ActionManager_RunSegment_Patch), "GetHealingMessage"));
+                    LookingForPenalty = true;
+                    continue;
+                } else if (LookingForPenalty && instruction.Is(OpCodes.Callvirt, AccessTools.Method(typeof(Statistic), "get_Penalty"))) {
+                    yield return instruction;
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ActionManager_RunSegment_Patch), "AddFollowerPenalties"));
+                    LookingForPenalty = false;
+                    continue;
+                }
+                yield return instruction;
+            }
+        }
+
+        public static string GetHealingMessage() {
+            return The.Player.GetPart<CleverGirl_EventListener>()?.RestingUntilPartyHealed == true
+                ? "Resting until party healed... Turn: "
+                : "Resting until healed... Turn: ";
+        }
+        public static int AddFollowerPenalties(int PlayerPenalty) {
+            int TotalPenalty = PlayerPenalty;
+            Cell currentCell = The.PlayerCell;
+            foreach (GameObject gameObject in currentCell.ParentZone.FastFloodVisibility(currentCell.X, currentCell.Y, 30, "Brain", The.Player)) {
+                if (gameObject.IsPlayerLed()) {
+                    TotalPenalty += gameObject.GetStat("Hitpoints").Penalty;
+                }
+            }
+            return TotalPenalty;
         }
     }
 }
