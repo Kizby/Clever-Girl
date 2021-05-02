@@ -15,7 +15,7 @@ namespace XRL.World.Parts {
             base.WantEvent(ID, cascade) ||
             ID == OwnerGetInventoryActionsEvent.ID ||
             ID == InventoryActionEvent.ID ||
-            ID == WaitUntilPartyHealedEvent.ID;
+            ID == CommandEvent.ID;
 
         public override bool HandleEvent(OwnerGetInventoryActionsEvent e) {
             if (e.Actor == ParentObject && e.Object?.IsPlayerLed() == true && !e.Object.IsPlayer()) {
@@ -86,8 +86,9 @@ namespace XRL.World.Parts {
             return true;
         }
 
-        public bool HandleWaitUntilPartyHealedEvent(WaitUntilPartyHealedEvent __) {
-            if (!AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
+        public bool HandleCommandEvent(CommandEvent e) {
+            Utility.MaybeLog("Command Event: " + e.Command);
+            if (e.Command == "CmdWaitUntilPartyHealed" && !AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
                 AutoAct.Setting = "r";
                 The.Game.ActionManager.RestingUntilHealed = true;
                 The.Game.ActionManager.RestingUntilHealedCount = 0;
