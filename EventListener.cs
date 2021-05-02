@@ -86,8 +86,7 @@ namespace XRL.World.Parts {
             return true;
         }
 
-        public bool HandleCommandEvent(CommandEvent e) {
-            Utility.MaybeLog("Command Event: " + e.Command);
+        public override bool HandleEvent(CommandEvent e) {
             if (e.Command == "CmdWaitUntilPartyHealed" && !AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
                 AutoAct.Setting = "r";
                 The.Game.ActionManager.RestingUntilHealed = true;
