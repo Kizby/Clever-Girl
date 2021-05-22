@@ -5,6 +5,7 @@ namespace XRL.World.CleverGirl {
     using Qud.API;
     using System.Collections.Generic;
     using XRL.Core;
+    using XRL.Language;
     using XRL.UI;
     using XRL.World.Parts;
 
@@ -112,10 +113,14 @@ namespace XRL.World.CleverGirl {
                             _ = screenBuffer.Goto(1, currentRow);
                             var cursorString = selectedIndex == partIndex ? "{{Y|>}}" : " ";
                             var partDesc = "";
-                            if (allCybernetics[partIndex] == null && Options.IndentBodyParts) {
-                                partDesc += new string(' ', body.GetPartDepth(relevantBodyParts[partIndex]));
+                            if (allCybernetics[partIndex] == null) {
+                                if (Options.IndentBodyParts) {
+                                    partDesc += new string(' ', body.GetPartDepth(relevantBodyParts[partIndex]));
+                                }
+                                partDesc += relevantBodyParts[partIndex].GetCardinalDescription();
+                            } else {
+                                partDesc += Grammar.MakeTitleCase(relevantBodyParts[partIndex].GetCardinalName());
                             }
-                            partDesc += relevantBodyParts[partIndex].GetCardinalDescription();
                             if (relevantBodyParts[partIndex].Primary) {
                                 partDesc += " {{G|*}}";
                             }
