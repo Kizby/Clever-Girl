@@ -1,6 +1,5 @@
 namespace XRL.World.Parts {
     using System;
-    using XRL.Rules;
     using XRL.World.CleverGirl;
     using Qud.API;
     using System.Linq;
@@ -13,7 +12,7 @@ namespace XRL.World.Parts {
         public override bool WantTurnTick() => true;
 
         public override void TurnTick(long TurnNumber) {
-            var excess = ParentObject.Body.GetWeight() + ParentObject.Inventory.GetWeight() - Stats.GetMaxWeight(ParentObject);
+            var excess = ParentObject.Body.GetWeight() + ParentObject.Inventory.GetWeight() - ParentObject.GetMaxCarriedWeight();
             if (excess <= 0) {
                 return;
             }

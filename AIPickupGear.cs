@@ -7,7 +7,6 @@ namespace XRL.World.Parts {
     using System.Xml.Serialization;
     using XRL.World.AI.GoalHandlers;
     using Qud.API;
-    using XRL.Rules;
     using XRL.World.CleverGirl;
 
     [Serializable]
@@ -92,7 +91,7 @@ namespace XRL.World.Parts {
             var currentCell = ParentObject.CurrentCell;
 
             // total carry capacity if we dropped everything in our inventory
-            var capacity = Stats.GetMaxWeight(ParentObject) - ParentObject.Body.GetWeight();
+            var capacity = ParentObject.GetMaxCarriedWeight() - ParentObject.Body.GetWeight();
             // if we're already overburdened by just our equipment, nothing to do
             if (capacity < 0) {
                 return false;

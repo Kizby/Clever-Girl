@@ -17,9 +17,9 @@ namespace XRL.World.Parts {
             ID == InventoryActionEvent.ID ||
             ID == CommandEvent.ID;
 
-        public override bool HandleEvent(OwnerGetInventoryActionsEvent e) {
-            if (e.Actor == ParentObject && e.Object?.IsPlayerLed() == true && !e.Object.IsPlayer()) {
-                if (e.Object.HasPart(typeof(CannotBeInfluenced))) {
+        public override bool HandleEvent(OwnerGetInventoryActionsEvent E) {
+            if (E.Actor == ParentObject && E.Object?.IsPlayerLed() == true && !E.Object.IsPlayer()) {
+                if (E.Object.HasPart(typeof(CannotBeInfluenced))) {
                     // don't manage someone who can't be managed
                     return true;
                 }
@@ -33,61 +33,61 @@ namespace XRL.World.Parts {
                         Feed.ACTION,
                     };
                 foreach (var action in actions) {
-                    if (action.Valid(e)) {
-                        _ = e.AddAction(action.Name, action.Display, action.Command, Key: action.Key, FireOnActor: true, WorksAtDistance: true);
+                    if (action.Valid(E)) {
+                        _ = E.AddAction(action.Name, action.Display, action.Command, Key: action.Key, FireOnActor: true, WorksAtDistance: true);
                     }
                 }
             }
             return true;
         }
 
-        public override bool HandleEvent(InventoryActionEvent e) {
-            if (e.Command == CleverGirl_AIPickupGear.ENABLE.Command && ParentObject.CheckCompanionDirection(e.Item)) {
-                _ = e.Item.RequirePart<CleverGirl_AIPickupGear>();
+        public override bool HandleEvent(InventoryActionEvent E) {
+            if (E.Command == CleverGirl_AIPickupGear.ENABLE.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                _ = E.Item.RequirePart<CleverGirl_AIPickupGear>();
                 // Anyone picking up gear should know how to unburden themself
-                _ = e.Item.RequirePart<CleverGirl_AIUnburden>();
-                ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Enable Gear Pickup");
+                _ = E.Item.RequirePart<CleverGirl_AIUnburden>();
+                ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Enable Gear Pickup");
             }
-            if (e.Command == CleverGirl_AIPickupGear.DISABLE.Command && ParentObject.CheckCompanionDirection(e.Item)) {
-                e.Item.RemovePart<CleverGirl_AIPickupGear>();
-                e.Item.RemovePart<CleverGirl_AIUnburden>();
-                ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Disable Gear Pickup");
+            if (E.Command == CleverGirl_AIPickupGear.DISABLE.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                E.Item.RemovePart<CleverGirl_AIPickupGear>();
+                E.Item.RemovePart<CleverGirl_AIUnburden>();
+                ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Disable Gear Pickup");
             }
-            if (e.Command == CleverGirl_AIManageSkills.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
-                if (e.Item.RequirePart<CleverGirl_AIManageSkills>().Manage()) {
-                    ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Manage Skills");
+            if (E.Command == CleverGirl_AIManageSkills.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (E.Item.RequirePart<CleverGirl_AIManageSkills>().Manage()) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Skills");
                 }
-                e.RequestInterfaceExit();
+                E.RequestInterfaceExit();
             }
-            if (e.Command == CleverGirl_AIManageMutations.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
-                if (e.Item.RequirePart<CleverGirl_AIManageMutations>().Manage()) {
-                    ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Manage Mutations");
+            if (E.Command == CleverGirl_AIManageMutations.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (E.Item.RequirePart<CleverGirl_AIManageMutations>().Manage()) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Mutations");
                 }
-                e.RequestInterfaceExit();
+                E.RequestInterfaceExit();
             }
-            if (e.Command == CleverGirl_AIManageAttributes.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
-                if (e.Item.RequirePart<CleverGirl_AIManageAttributes>().Manage()) {
-                    ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Manage Attributes");
+            if (E.Command == CleverGirl_AIManageAttributes.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (E.Item.RequirePart<CleverGirl_AIManageAttributes>().Manage()) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Attributes");
                 }
-                e.RequestInterfaceExit();
+                E.RequestInterfaceExit();
             }
-            if (e.Command == ManageGear.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
-                if (ManageGear.Manage(e.Actor, e.Item)) {
-                    ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Manage Gear");
+            if (E.Command == ManageGear.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (ManageGear.Manage(E.Actor, E.Item)) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Manage Gear");
                 }
-                e.RequestInterfaceExit();
+                E.RequestInterfaceExit();
             }
-            if (e.Command == Feed.ACTION.Command && ParentObject.CheckCompanionDirection(e.Item)) {
-                if (Feed.DoFeed(e.Actor, e.Item)) {
-                    ParentObject.CompanionDirectionEnergyCost(e.Item, 100, "Feed");
+            if (E.Command == Feed.ACTION.Command && ParentObject.CheckCompanionDirection(E.Item)) {
+                if (Feed.DoFeed(E.Actor, E.Item)) {
+                    ParentObject.CompanionDirectionEnergyCost(E.Item, 100, "Feed");
                 }
-                e.RequestInterfaceExit();
+                E.RequestInterfaceExit();
             }
             return true;
         }
 
-        public override bool HandleEvent(CommandEvent e) {
-            if (e.Command == "CleverGirl_CmdWaitUntilPartyHealed" && !AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
+        public override bool HandleEvent(CommandEvent E) {
+            if (E.Command == "CleverGirl_CmdWaitUntilPartyHealed" && !AutoAct.ShouldHostilesInterrupt("r", popSpot: true)) {
                 AutoAct.Setting = "r";
                 The.Game.ActionManager.RestingUntilHealed = true;
                 The.Game.ActionManager.RestingUntilHealedCount = 0;

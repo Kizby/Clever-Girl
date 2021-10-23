@@ -20,8 +20,8 @@ namespace XRL.World.Parts {
 
         public override bool WantEvent(int ID, int cascade) => ID == StatChangeEvent.ID;
 
-        public override bool HandleEvent(StatChangeEvent e) {
-            if (e.Name == "AP") {
+        public override bool HandleEvent(StatChangeEvent E) {
+            if (E.Name == "AP") {
                 SpendAP();
             }
             return true;

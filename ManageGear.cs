@@ -156,7 +156,7 @@ namespace XRL.World.CleverGirl {
                                 name = allEquipped[partIndex].DisplayName;
 
                                 fade = !wornElsewhere.Add(allEquipped[partIndex]) ||
-                                    (allEquipped[partIndex].HasTag("RenderImplantGreyInEquipment") && allEquipped[partIndex].GetPart<Cybernetics2BaseItem>()?.ImplantedOn != null);
+                                    (allEquipped[partIndex].HasTag("RenderImplantGreyInEquipment") && allEquipped[partIndex].GetPart<CyberneticsBaseItem>()?.ImplantedOn != null);
                             }
                             if (icon != null) {
                                 if (fade) {

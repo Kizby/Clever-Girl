@@ -116,7 +116,7 @@ namespace XRL.World.CleverGirl {
                     }
                 }
 
-                Func<GameObject, string> DisgustingName = gameObject => {
+                string DisgustingName(GameObject gameObject) {
                     var existingAdjectives = gameObject.GetPartDescendedFrom<DisplayNameAdjectives>();
                     bool alreadyDisgusting = existingAdjectives?.AdjectiveList.Contains("disgusting") == true;
                     (existingAdjectives ?? gameObject.RequirePart<DisplayNameAdjectives>()).RequireAdjective("disgusting");
@@ -129,7 +129,7 @@ namespace XRL.World.CleverGirl {
                         existingAdjectives.RemoveAdjective("disgusting");
                     }
                     return result;
-                };
+                }
 
                 if (!WillEat) {
                     Popup.Show(Follower.One() + Follower.GetVerb("refuse") + " to eat " + DisgustingName(Item) + "!");
