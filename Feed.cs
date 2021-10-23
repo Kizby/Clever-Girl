@@ -115,8 +115,24 @@ namespace XRL.World.CleverGirl {
                         WillEat = Utility.Roll("1d6", Stomach) >= 6;
                     }
                 }
+
+                Func<GameObject, string> DisgustingName = gameObject => {
+                    var existingAdjectives = gameObject.GetPartDescendedFrom<DisplayNameAdjectives>();
+                    bool alreadyDisgusting = existingAdjectives?.AdjectiveList.Contains("disgusting") == true;
+                    (existingAdjectives ?? gameObject.RequirePart<DisplayNameAdjectives>()).RequireAdjective("disgusting");
+
+                    var result = gameObject.one(NoStacker: true);
+
+                    if (existingAdjectives == null) {
+                        gameObject.RemovePart<DisplayNameAdjectives>();
+                    } else if (!alreadyDisgusting) {
+                        existingAdjectives.RemoveAdjective("disgusting");
+                    }
+                    return result;
+                };
+
                 if (!WillEat) {
-                    Popup.Show(Follower.The + Follower.ShortDisplayName + Follower.GetVerb("refuse") + " to eat " + Item.SituationalArticle() + "disgusting " + Item.DisplayNameSingle + "!");
+                    Popup.Show(Follower.One() + Follower.GetVerb("refuse") + " to eat " + DisgustingName(Item) + "!");
                     return true;
                 }
 
@@ -146,11 +162,10 @@ namespace XRL.World.CleverGirl {
                     Message += " " + Follower.It + Follower.GetVerb("look") + " sick.";
                 }
                 if (Convincing) {
-                    Popup.Show(Leader.It + Leader.GetVerb("convince") + " " + Follower.SituationalArticle() + Follower.ShortDisplayName +
-                               " to eat " + Item.SituationalArticle() + "disgusting " + Item.DisplayNameSingle + Message);
+                    Popup.Show(Leader.It + Leader.GetVerb("convince") + " " + Follower.one() + " to eat " + DisgustingName(Item) + Message);
                 } else {
                     string Adverb = Gross ? " begrudgingly" : " hungrily";
-                    Popup.Show(Follower.The + Follower.ShortDisplayName + Adverb + Follower.GetVerb("eat") + " " + Item.SituationalArticle() + Item.DisplayNameSingle + Message);
+                    Popup.Show(Follower.One() + Adverb + Follower.GetVerb("eat") + " " + Item.one(NoStacker: true) + Message);
                 }
                 return true;
             };
