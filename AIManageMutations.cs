@@ -107,7 +107,7 @@ namespace XRL.World.Parts {
                     var possibleMutations = mutations.GetMutatePool()
                                                      .Shuffle(Random);
                     if (!ParentObject.IsCombatObject()) {
-                        // don't offer combat mutations to NoCombat followers
+                        // don't offer combat mutations to NoCombat companions
                         possibleMutations = possibleMutations.Where(m => !CombatMutations.Contains(m.DisplayName))
                                                              .ToList();
                     }
@@ -147,7 +147,7 @@ namespace XRL.World.Parts {
 
                     var result = choices[choice];
                     if (result.GetVariants() != null) {
-                        // let followers choose their variant 😄
+                        // let companions choose their variant 😄
                         result.SetVariant(Random.Next(result.GetVariants().Count));
                     }
                     var mutationIndex = mutations.AddMutation(result, 1);

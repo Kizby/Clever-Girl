@@ -93,7 +93,7 @@ namespace XRL.World.CleverGirl {
                     continue;
                 } else if (LookingForPenalty && instruction.Is(OpCodes.Callvirt, AccessTools.Method(typeof(Statistic), "get_Penalty"))) {
                     yield return instruction;
-                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ActionManager_RunSegment_Patch), "AddFollowerPenalties"));
+                    yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(typeof(ActionManager_RunSegment_Patch), "AddCompanionPenalties"));
                     LookingForPenalty = false;
                     continue;
                 }
@@ -106,7 +106,7 @@ namespace XRL.World.CleverGirl {
                 ? "Resting until party healed... Turn: "
                 : "Resting until healed... Turn: ";
         }
-        public static int AddFollowerPenalties(int PlayerPenalty) {
+        public static int AddCompanionPenalties(int PlayerPenalty) {
             int TotalPenalty = PlayerPenalty;
             if (The.Player.GetPart<CleverGirl_EventListener>()?.RestingUntilPartyHealed == true) {
                 Cell currentCell = The.PlayerCell;

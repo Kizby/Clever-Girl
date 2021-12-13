@@ -40,7 +40,7 @@ namespace XRL.World.CleverGirl {
             return false && (cell.GetObjectCountWithPart("Campfire") > 0 || cell.AnyAdjacentCell(adj => adj.GetObjectCountWithPart("Campfire") > 0));
         }
 
-        public static bool DoFeed(GameObject Leader, GameObject Follower) {
+        public static bool DoFeed(GameObject Leader, GameObject Companion) {
             var options = new List<string>();
             var keys = new List<char>();
             var actions = new List<Func<GameObject, GameObject, bool>>();
@@ -57,8 +57,8 @@ namespace XRL.World.CleverGirl {
                     actions.Add(FeedItem(item));
                 }
             }
-            if (Follower.Inventory != null) {
-                foreach (var item in Follower.Inventory.GetObjects(o => o.HasPart(typeof(Food)))) {
+            if (Companion.Inventory != null) {
+                foreach (var item in Companion.Inventory.GetObjects(o => o.HasPart(typeof(Food)))) {
                     options.Add(item.DisplayName);
                     actions.Add(FeedItem(item));
                 }
@@ -78,24 +78,24 @@ namespace XRL.World.CleverGirl {
                 if (index == -1) {
                     return false;
                 }
-                if (actions[index](Leader, Follower)) {
+                if (actions[index](Leader, Companion)) {
                     return true;
                 }
             }
         }
 
-        private static bool FeedFromIngredients(GameObject Leader, GameObject Follower) {
+        private static bool FeedFromIngredients(GameObject Leader, GameObject Companion) {
             return false;
         }
 
-        private static bool FeedFromRecipe(GameObject Leader, GameObject Follower) {
+        private static bool FeedFromRecipe(GameObject Leader, GameObject Companion) {
             return false;
         }
 
         private static Func<GameObject, GameObject, bool> FeedItem(GameObject Item) {
-            return (Leader, Follower) => {
+            return (Leader, Companion) => {
                 Food Food = Item.GetPart<Food>();
-                bool IsCarnivorous = Follower.HasPart(typeof(Carnivorous));
+                bool IsCarnivorous = Companion.HasPart(typeof(Carnivorous));
                 bool IsMeat = Item.HasTag("Meat");
                 bool Gross = Food.Gross;
                 if (Gross && IsCarnivorous && IsMeat) {
@@ -103,11 +103,11 @@ namespace XRL.World.CleverGirl {
                     Gross = false;
                 }
 
-                Stomach Stomach = Follower.GetPart<Stomach>();
+                Stomach Stomach = Companion.GetPart<Stomach>();
                 bool WillEat = !Gross;
                 bool Convincing = false;
                 if (!WillEat) {
-                    Convincing = Utility.Roll("2d6", Stomach) + Leader.StatMod("Ego") - 6 > Stats.GetCombatMA(Follower);
+                    Convincing = Utility.Roll("2d6", Stomach) + Leader.StatMod("Ego") - 6 > Stats.GetCombatMA(Companion);
                     if (Convincing) {
                         WillEat = true;
                     } else {
@@ -132,22 +132,22 @@ namespace XRL.World.CleverGirl {
                 }
 
                 if (!WillEat) {
-                    Popup.Show(Follower.One() + Follower.GetVerb("refuse") + " to eat " + DisgustingName(Item) + "!");
+                    Popup.Show(Companion.One() + Companion.GetVerb("refuse") + " to eat " + DisgustingName(Item) + "!");
                     return true;
                 }
 
-                bool WasIll = Follower.HasEffect<Ill>();
+                bool WasIll = Companion.HasEffect<Ill>();
                 // fake hunger so they'll eat whatever they're fed
                 Stomach.HungerLevel = 2;
-                GetInventoryActionsEvent GetInventoryActionsEvent = GetInventoryActionsEvent.FromPool(Follower, Item, null);
+                GetInventoryActionsEvent GetInventoryActionsEvent = GetInventoryActionsEvent.FromPool(Companion, Item, null);
                 _ = Item.HandleEvent(GetInventoryActionsEvent);
                 if (!GetInventoryActionsEvent.Actions.ContainsKey("Eat")) {
                     // can't eat it?
                     return false;
                 }
-                _ = GetInventoryActionsEvent.Actions["Eat"].Process(Item, Follower);
+                _ = GetInventoryActionsEvent.Actions["Eat"].Process(Item, Companion);
 
-                string Message = Utility.AdjustSubject(Food.Message, Follower);
+                string Message = Utility.AdjustSubject(Food.Message, Companion);
                 if (Message == "That hits the spot!" && Gross) {
                     // no it doesn't
                     Message = "Blech!";
@@ -158,14 +158,14 @@ namespace XRL.World.CleverGirl {
                 if (!Message.EndsWith("!") && !Message.EndsWith(".") && !Message.EndsWith("?")) {
                     Message += ".";
                 }
-                if (!WasIll && Follower.HasEffect<Ill>()) {
-                    Message += " " + Follower.It + Follower.GetVerb("look") + " sick.";
+                if (!WasIll && Companion.HasEffect<Ill>()) {
+                    Message += " " + Companion.It + Companion.GetVerb("look") + " sick.";
                 }
                 if (Convincing) {
-                    Popup.Show(Leader.It + Leader.GetVerb("convince") + " " + Follower.one() + " to eat " + DisgustingName(Item) + Message);
+                    Popup.Show(Leader.It + Leader.GetVerb("convince") + " " + Companion.one() + " to eat " + DisgustingName(Item) + Message);
                 } else {
                     string Adverb = Gross ? " begrudgingly" : " hungrily";
-                    Popup.Show(Follower.One() + Adverb + Follower.GetVerb("eat") + " " + Item.one(NoStacker: true) + Message);
+                    Popup.Show(Companion.One() + Adverb + Companion.GetVerb("eat") + " " + Item.one(NoStacker: true) + Message);
                 }
                 return true;
             };

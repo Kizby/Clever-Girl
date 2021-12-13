@@ -18,7 +18,7 @@ namespace XRL.World.CleverGirl {
             Valid = Utility.InventoryAction.Adjacent,
         };
 
-        public static bool Manage(GameObject Leader, GameObject Follower) {
+        public static bool Manage(GameObject Leader, GameObject Companion) {
             GameManager.Instance.PushGameView("Equipment");
             var screenBuffer = ScreenBuffer.GetScrapBuffer1();
             var selectedIndex = 0;
@@ -26,7 +26,7 @@ namespace XRL.World.CleverGirl {
             var screenTab = ScreenTab.Equipment;
             var Done = false;
             var Changed = false;
-            var body = Follower.Body;
+            var body = Companion.Body;
             var relevantBodyParts = new List<BodyPart>();
             var allCybernetics = new List<GameObject>();
             var allEquippedOrDefault = new List<GameObject>();
@@ -71,7 +71,7 @@ namespace XRL.World.CleverGirl {
                         HasCybernetics = true;
                     }
                 }
-                var CanChangePrimaryLimb = !Follower.AreHostilesNearby();
+                var CanChangePrimaryLimb = !Companion.AreHostilesNearby();
                 var CacheValid = true;
                 while (!Done && CacheValid) {
                     Event.ResetPool(false);
@@ -213,18 +213,18 @@ namespace XRL.World.CleverGirl {
                         } else if (screenTab != ScreenTab.Cybernetics && (Keyboard.vkCode == Keys.Left || keys == Keys.NumPad4) && allEquipped[selectedIndex] != null) {
                             var bodyPart = relevantBodyParts[selectedIndex];
                             var oldEquipped = allEquipped[selectedIndex];
-                            _ = Follower.FireEvent(Event.New("CommandUnequipObject", "BodyPart", bodyPart));
+                            _ = Companion.FireEvent(Event.New("CommandUnequipObject", "BodyPart", bodyPart));
                             if (bodyPart.Equipped != oldEquipped) {
                                 // for convenience, put it in the leader's inventory
-                                Yoink(oldEquipped, Follower, Leader);
+                                Yoink(oldEquipped, Companion, Leader);
                                 Changed = true;
                                 CacheValid = false;
                             }
                         } else if (screenTab != ScreenTab.Cybernetics && keys == Keys.Tab) {
                             if (!CanChangePrimaryLimb) {
-                                Popup.Show(Follower.The + Follower.ShortDisplayName + " can't switch primary limbs in combat.");
+                                Popup.Show(Companion.The + Companion.ShortDisplayName + " can't switch primary limbs in combat.");
                             } else if (relevantBodyParts[selectedIndex].Abstract) {
-                                Popup.Show("This body part cannot be set as " + Follower.its + " primary.");
+                                Popup.Show("This body part cannot be set as " + Companion.its + " primary.");
                             } else if (!relevantBodyParts[selectedIndex].PreferedPrimary) {
                                 relevantBodyParts[selectedIndex].SetAsPreferredDefault();
                                 Changed = true;
@@ -238,16 +238,16 @@ namespace XRL.World.CleverGirl {
                                 var pressedIndex = useSelected ? selectedIndex : keymap[key1];
                                 if (allEquipped[pressedIndex] != null) {
                                     var oldEquipped = allEquipped[pressedIndex];
-                                    EquipmentAPI.TwiddleObject(Follower, oldEquipped, ref Done);
+                                    EquipmentAPI.TwiddleObject(Companion, oldEquipped, ref Done);
                                     var bodyPart = relevantBodyParts[pressedIndex];
                                     var curEquipped = screenTab == ScreenTab.Cybernetics ? bodyPart.Cybernetics : bodyPart.Equipped;
                                     if (curEquipped != oldEquipped) {
                                         // for convenience, put it in the leader's inventory
-                                        Yoink(oldEquipped, Follower, Leader);
+                                        Yoink(oldEquipped, Companion, Leader);
                                         Changed = true;
                                         CacheValid = false;
                                     }
-                                } else if (screenTab == ScreenTab.Equipment && ShowBodypartEquipUI(Leader, Follower, relevantBodyParts[pressedIndex])) {
+                                } else if (screenTab == ScreenTab.Equipment && ShowBodypartEquipUI(Leader, Companion, relevantBodyParts[pressedIndex])) {
                                     Changed = true;
                                     CacheValid = false;
                                 }
@@ -259,9 +259,9 @@ namespace XRL.World.CleverGirl {
             GameManager.Instance.PopGameView();
             return Changed;
         }
-        public static bool ShowBodypartEquipUI(GameObject Leader, GameObject Follower, BodyPart SelectedBodyPart) {
+        public static bool ShowBodypartEquipUI(GameObject Leader, GameObject Companion, BodyPart SelectedBodyPart) {
             var leaderInventory = Leader.Inventory;
-            var inventory = Follower.Inventory;
+            var inventory = Companion.Inventory;
             if (inventory != null || leaderInventory != null) {
                 var EquipmentList = new List<GameObject>(16);
                 inventory?.GetEquipmentListForSlot(EquipmentList, SelectedBodyPart.Type);
@@ -279,10 +279,10 @@ namespace XRL.World.CleverGirl {
                         return false;
                     }
                     if ((toEquip.GetPart<Stacker>()?.StackCount ?? 1) > 1) {
-                        // pick one off the stack for the follower
+                        // pick one off the stack for the companion
                         _ = toEquip.SplitStack(1);
                     }
-                    _ = Follower.FireEvent(Event.New("CommandEquipObject", "Object", toEquip, "BodyPart", SelectedBodyPart));
+                    _ = Companion.FireEvent(Event.New("CommandEquipObject", "Object", toEquip, "BodyPart", SelectedBodyPart));
                     return true;
                 }
                 Popup.Show("Neither of you have anything to use in that slot.");

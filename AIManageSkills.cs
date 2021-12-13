@@ -19,7 +19,7 @@ namespace XRL.World.Parts {
         };
 
         /// <summary>
-        /// these skills don't make sense for followers
+        /// these skills don't make sense for companions
         /// </summary>
         public static HashSet<string> IgnoreSkills = new HashSet<string>{
             "Cooking and Gathering",
