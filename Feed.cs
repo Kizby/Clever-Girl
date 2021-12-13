@@ -16,10 +16,13 @@ namespace XRL.World.CleverGirl {
             Valid = CanFeed,
         };
 
-        private static bool CanFeed(OwnerGetInventoryActionsEvent E) {
-            return Utility.InventoryAction.Adjacent(E) &&
-                E.Object.HasPart(typeof(Stomach)) &&
+        private static bool CanFeed(IInventoryActionsEvent E) {
+            return Utility.InventoryAction.Adjacent(E) && CanEat(E.Object) &&
                 (HasFood(E.Actor) || HasFood(E.Object) || NextToUsableCampfire(E.Actor));
+        }
+
+        public static bool CanEat(GameObject obj) {
+            return obj.HasPartDescendedFrom<Stomach>();
         }
 
         private static bool HasFood(GameObject gameObject) {

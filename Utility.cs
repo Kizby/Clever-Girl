@@ -66,8 +66,8 @@ namespace XRL.World.CleverGirl {
             public string Display;
             public string Command;
             public char Key;
-            public Predicate<OwnerGetInventoryActionsEvent> Valid = _ => true;
-            public static bool Adjacent(OwnerGetInventoryActionsEvent e) {
+            public Predicate<IInventoryActionsEvent> Valid = _ => true;
+            public static bool Adjacent(IInventoryActionsEvent e) {
                 return e.Actor.CurrentCell.IsAdjacentTo(e.Object.CurrentCell);
             }
         }
