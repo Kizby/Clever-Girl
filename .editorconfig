@@ -92,6 +92,8 @@ dotnet_diagnostic.IDE0072.severity = suggestion
 dotnet_diagnostic.IDE0058.severity = suggestion
 ## Disable "Using directives must be placed outside of a namespace declaration"
 #dotnet_diagnostic.IDE0065.severity = none
+# Ignore "Namespace does not match folder structure"
+dotnet_diagnostic.IDE0130.severity = none
 # Disable "Remove redundant empty line"
 # Redundant with SA1507
 dotnet_diagnostic.RCS1036.severity = none
