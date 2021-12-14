@@ -2,6 +2,8 @@ namespace XRL.World.CleverGirl {
     using System;
     using System.Collections.Generic;
     using ConsoleLib.Console;
+    using HarmonyLib;
+    using Qud.API;
     using XRL.Rules;
     using XRL.UI;
     using XRL.World.Effects;
@@ -98,6 +100,7 @@ namespace XRL.World.CleverGirl {
             }
             const string check = "{{y|[{{G|X}}]}}";
             var feedCount = 0;
+            var last = 0;
             while (true) {
                 options[1] = (feedCount == 0 ? "&K" : "") + "Feed " + feedCount + " selected companion" + (feedCount == 1 ? "" : "s") + ".";
                 var index = Popup.ShowOptionList("{{W|Your companions {{watery|salivate}} expectantly.}}",
@@ -105,11 +108,13 @@ namespace XRL.World.CleverGirl {
                                                 Icons: icons.ToArray(),
                                                 iconPosition: 6,
                                                 centerIntro: true,
+                                                defaultSelected: last,
                                                 AllowEscape: true);
                 if (index == -1) {
                     return false;
                 }
                 if (index > 1) {
+                    last = index;
                     if (options[index].StartsWith(check)) {
                         options[index] = "[ ]" + options[index].Substring(check.Length);
                         --feedCount;
@@ -153,7 +158,7 @@ namespace XRL.World.CleverGirl {
                 }
                 if (Campfire.hasSkill) {
                     options.Add("Choose ingredients to cook with.");
-                    actions.Add(FeedFromIngredients);
+                    actions.Add((leader, companions) => FeedFromIngredients(leader, companions, campfires[0].GetPart<Campfire>()));
 
                     options.Add("Cook from a recipe.");
                     actions.Add(FeedFromRecipe);
@@ -212,13 +217,18 @@ namespace XRL.World.CleverGirl {
                     }
                 }
                 GameObject target = Companions[0];
+                bool fakeTarget = false;
                 string targetName = Companions[0].One();
                 if (Companions.Count > 1) {
                     // make a fake object so we pluralize
                     target = GameObject.create("Bones");
+                    fakeTarget = true;
                     targetName = "Your companions";
                 }
                 Popup.Show(targetName + target.GetVerb("start") + " to metabolize the meal, gaining the following effect for the rest of the day:\n\n&W" + Campfire.ProcessEffectDescription(description, target));
+                if (fakeTarget) {
+                    _ = target.Destroy(Silent: true, Obliterate: true);
+                }
                 return true;
             };
         }
@@ -227,8 +237,235 @@ namespace XRL.World.CleverGirl {
             return DoFeed(Leader, new List<GameObject> { Companion });
         }
 
-        private static bool FeedFromIngredients(GameObject Leader, List<GameObject> Companions) {
-            return false;
+        private class Ingredient {
+            public string Name;
+            public int Count;
+            public IRenderable Icon;
+            public List<GameObject> Objects;
+        }
+        private static bool FeedFromIngredients(GameObject Leader, List<GameObject> Companions, Campfire Campfire) {
+            var ingredients = Campfire.GetValidCookingIngredients(Leader);
+            var anyCarnivorous = false;
+            foreach (var companion in Companions) {
+                ingredients.AddRange(Campfire.GetValidCookingIngredients(companion));
+                if (companion.HasPart(nameof(Carnivorous))) {
+                    anyCarnivorous = true;
+                }
+            }
+            ingredients.Sort(Campfire.IngredientSort);
+
+            var edibleIngredients = new Dictionary<string, Ingredient>();
+            foreach (var ingredient in ingredients) {
+                if (anyCarnivorous && (ingredient.HasTag("Plant") || ingredient.HasTag("Fungus"))) {
+                    continue;
+                }
+                string name;
+                int count;
+                IRenderable icon = ingredient.RenderForUI();
+                if (ingredient.LiquidVolume != null) {
+                    name = ingredient.LiquidVolume.GetPreparedCookingIngredient();
+                    count = ingredient.LiquidVolume.Volume;
+                } else {
+                    name = ingredient.GetCachedDisplayNameStripped();
+                    count = ingredient.Count;
+                }
+                if (!edibleIngredients.ContainsKey(name)) {
+                    edibleIngredients[name] = new Ingredient { Name = name, Count = 0, Icon = icon, Objects = new List<GameObject>() };
+                }
+                edibleIngredients[name].Count += count;
+                edibleIngredients[name].Objects.Add(ingredient);
+            }
+
+            var finalIngredients = new List<Ingredient>();
+            foreach (var ingredient in edibleIngredients.Values) {
+                if (ingredient.Count >= Companions.Count) {
+                    finalIngredients.Add(ingredient);
+                }
+            }
+            finalIngredients.Sort((a, b) => ColorUtility.CompareExceptFormattingAndCase(a.Objects[0].GetDisplayName(NoColor: true), b.Objects[0].GetDisplayName(NoColor: true)));
+            var maxIngredients = Leader.HasSkill("CookingAndGathering_Spicer") ? 3 : 2;
+
+            var options = new List<string> { "" };
+            var icons = new List<IRenderable> { null };
+            foreach (var ingredient in finalIngredients) {
+                options.Add("[ ]   " + ingredient.Objects[0].GetDisplayName(1120) + " x" + Companions.Count);
+                icons.Add(ingredient.Objects[0].RenderForUI());
+            }
+            const string check = "{{y|[{{G|X}}]}}";
+            var countIngredients = 0;
+            var last = 0;
+            while (true) {
+                var countString = "{{" + (countIngredients > maxIngredients ? "R" : "C") + "|" + countIngredients + "}}";
+                options[0] = "{{W|Cook with the " + countString + " selected ingredients.}}";
+                var index = Popup.ShowOptionList("Choose ingredients to cook with.",
+                                                 options.ToArray(),
+                                                 Intro: "Selected " + countString + " of " + maxIngredients + " possible ingredients.",
+                                                 AllowEscape: true,
+                                                 defaultSelected: last,
+                                                 Icons: icons.ToArray(),
+                                                 iconPosition: 6
+                                                 );
+                if (index == -1) {
+                    return false;
+                }
+                if (index > 0) {
+                    last = index;
+                    if (options[index].StartsWith(check)) {
+                        options[index] = "[ ]" + options[index].Substring(check.Length);
+                        --countIngredients;
+                    } else {
+                        options[index] = check + options[index].Substring("[ ]".Length);
+                        ++countIngredients;
+                    }
+                }
+                if (index == 0 && countIngredients <= maxIngredients) {
+                    break;
+                }
+            }
+
+            var ingredientTypes = new List<string>();
+            var mealIngredients = new List<Ingredient>();
+            var mealObjects = Event.NewGameObjectList();
+            var mealEffectiveIngredients = Event.NewGameObjectList();
+            for (int i = 0; i < finalIngredients.Count; ++i) {
+                if (!options[i + 1].StartsWith(check)) {
+                    continue;
+                }
+                var realObj = finalIngredients[i].Objects[0];
+                var effectiveObj = realObj;
+                string type;
+                if (realObj.HasPart(nameof(PreparedCookingIngredient))) {
+                    var part = realObj.GetPart<PreparedCookingIngredient>();
+                    type = part.GetTypeInstance();
+                    if (part.type == "random") {
+                        while (ingredientTypes.Contains(type)) {
+                            type = part.GetTypeInstance();
+                        }
+                        effectiveObj = EncountersAPI.GetAnObjectNoExclusions(obj =>
+                            (obj.HasPart(nameof(PreparedCookingIngredient)) && obj.GetPartParameter(nameof(PreparedCookingIngredient), "type").Contains(type)) ||
+                            (obj.HasTag("LiquidCookingIngredient") && obj.createSample().LiquidVolume.GetPreparedCookingIngredient().Contains(type)));
+                    }
+                } else {
+                    type = realObj.LiquidVolume.GetPreparedCookingIngredient().Split(',').GetRandomElement();
+                }
+                if (!ingredientTypes.Contains(type)) {
+                    ingredientTypes.Add(type);
+                }
+                mealIngredients.Add(finalIngredients[i]);
+                mealObjects.Add(realObj);
+                mealEffectiveIngredients.Add(effectiveObj);
+            }
+
+            GameObject target = Companions[0];
+            bool fakeTarget = false;
+            string targetName = Companions[0].One();
+            if (Companions.Count > 1) {
+                // make a fake object so we pluralize
+                target = GameObject.create("Bones");
+                fakeTarget = true;
+                targetName = "Your companions";
+            }
+
+            Popup.Show(Campfire.DescribeMeal(ingredientTypes, mealObjects));
+            Popup.Show(targetName + target.GetVerb("eat") + " the meal.");
+            if (ingredientTypes.Count > 0) {
+                ProceduralCookingEffect actualEffect;
+                if (Leader.HasEffect<Inspired>()) {
+                    var recipeOptions = Campfire.GenerateEffectsFromTypeList(ingredientTypes, 3);
+                    var index = Popup.ShowOptionList("You let inspiration guide you toward a mouthwatering dish.",
+                        recipeOptions.ConvertAll(effect => Campfire.ProcessEffectDescription(effect.GetTemplatedProceduralEffectDescription(), target)).ToArray(),
+                        Spacing: 1);
+
+                    actualEffect = recipeOptions[index];
+                    var newRecipe = CookingRecipe.FromIngredients(mealEffectiveIngredients, actualEffect, Companions[0].BaseDisplayName);
+                    _ = CookingGamestate.LearnRecipe(newRecipe);
+                    Popup.Show("You create a new recipe for {{|" + newRecipe.GetDisplayName() + "}}!");
+                    var allCompanions = Companions[0].an();
+                    if (Companions.Count == 2) {
+                        allCompanions += " and " + Companions[1].an();
+                    } else {
+                        for (int i = 1; i < Companions.Count; ++i) {
+                            allCompanions += ", ";
+                            if (i == Companions.Count - 1) {
+                                allCompanions += "and ";
+                            }
+                            allCompanions += Companions[i].an();
+                        }
+                    }
+                    JournalAPI.AddAccomplishment("Your companions, " + allCompanions + ", inspired you to invent a mouthwatering dish called {{|" + newRecipe.GetDisplayName() + "}}.",
+                        "Surrounded by friends, the Carbide Chef =name= immortalized the memor" + (Companions.Count == 1 ? "y" : "ies") + " of " + allCompanions + " in the mouthwatering dish called {{|" + newRecipe.GetDisplayName() + "}}.",
+                        muralCategory: JournalAccomplishment.MuralCategory.CreatesSomething,
+                        muralWeight: JournalAccomplishment.MuralWeight.Low);
+                    Campfire.IncrementRecipeAchievement();
+                    _ = Leader.RemoveEffect(nameof(Inspired));
+                } else {
+                    actualEffect = Campfire.GenerateEffectFromTypeList(ingredientTypes);
+                }
+                _ = Leader.FireEvent(Event.New("CookedAt", "Object", Campfire.ParentObject));
+                foreach (var companion in Companions) {
+                    _ = companion.FireEvent("ClearFoodEffects");
+                    _ = companion.CleanEffects();
+
+                    var tasty = Campfire.ForceTastyBasedOnIngredients(mealEffectiveIngredients) || 10.in100();
+                    if (tasty) {
+                        _ = companion.ApplyEffect(AccessTools.Method(typeof(Campfire), "RandomTastyEffect").Invoke(null, new object[] { "" }) as Effect);
+                    }
+
+                    var oneEffect = actualEffect.DeepCopy(null) as ProceduralCookingEffect;
+                    oneEffect.Init(companion);
+                    oneEffect.Duration = 1;
+                    _ = companion.ApplyEffect(oneEffect);
+                }
+                Popup.Show(targetName + target.GetVerb("start") + " to metabolize the meal, gaining the following effect for the rest of the day:\n\n&W" + Campfire.ProcessEffectDescription(actualEffect.GetProceduralEffectDescription(), target));
+            } else {
+                foreach (var companion in Companions) {
+                    _ = companion.FireEvent("ClearFoodEffects");
+                    _ = companion.CleanEffects();
+                    var tasty = 10.in100();
+                    if (tasty) {
+                        _ = companion.ApplyEffect(AccessTools.Method(typeof(Campfire), "RandomTastyEffect").Invoke(null, new object[] { "" }) as Effect);
+                    }
+                }
+            }
+
+            if (fakeTarget) {
+                _ = target.Destroy(Silent: true, Obliterate: true);
+            }
+
+            var usedEvent = Event.New("UsedAsIngredient", "Actor", Leader);
+            foreach (var ingredient in mealIngredients) {
+                var remaining = Companions.Count;
+                for (int i = 0; remaining > 0 && i < ingredient.Objects.Count; ++i) {
+                    var obj = ingredient.Objects[i];
+                    _ = obj.FireEvent(usedEvent);
+                    if (obj.HasPart(nameof(PreparedCookingIngredient))) {
+                        var part = obj.GetPart<PreparedCookingIngredient>();
+                        if (part.HasTag("AlwaysStack")) {
+                            // GameObject.Destroy only destroys one of Stackers
+                            for (int j = 0; j < remaining; ++j) {
+                                _ = obj.Destroy();
+                            }
+                        } else if (part.charges <= remaining) {
+                            remaining -= part.charges;
+                            _ = obj.Destroy();
+                        } else {
+                            part.charges -= remaining;
+                            _ = obj.SplitStack(remaining);
+                            remaining = 0;
+                            obj.CheckStack();
+                        }
+                    } else if (obj.LiquidVolume != null) {
+                        if (obj.LiquidVolume.Volume >= remaining) {
+                            _ = obj.LiquidVolume.UseDrams(remaining);
+                            remaining = 0;
+                        } else {
+                            remaining -= obj.LiquidVolume.Volume;
+                            _ = obj.LiquidVolume.UseDrams(obj.LiquidVolume.Volume);
+                        }
+                    }
+                }
+            }
+            return true;
         }
 
         private static bool FeedFromRecipe(GameObject Leader, List<GameObject> Companions) {
