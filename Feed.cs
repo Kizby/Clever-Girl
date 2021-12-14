@@ -375,7 +375,11 @@ namespace XRL.World.CleverGirl {
             var options = new List<string> { "" };
             var icons = new List<IRenderable> { null };
             foreach (var ingredient in ingredients) {
-                options.Add("[ ]   " + ingredient.Objects[0].GetDisplayName(1120) + " x" + Companions.Count);
+                var name = ingredient.Objects[0].GetDisplayName(1120);
+                if (ingredient.Objects[0].HasPart(nameof(LiquidVolume))) {
+                    name = ingredient.Objects[0].LiquidVolume.GetLiquidName();
+                }
+                options.Add("[ ]   " + name + " x" + Companions.Count);
                 icons.Add(ingredient.Objects[0].RenderForUI());
             }
             const string check = "{{y|[{{G|X}}]}}";
@@ -395,8 +399,8 @@ namespace XRL.World.CleverGirl {
                 if (index == -1) {
                     return false;
                 }
+                last = index;
                 if (index > 0) {
-                    last = index;
                     if (options[index].StartsWith(check)) {
                         options[index] = "[ ]" + options[index].Substring(check.Length);
                         --countIngredients;
