@@ -191,9 +191,26 @@ namespace XRL.World.CleverGirl {
             }
         }
 
-        private static Func<GameObject, List<GameObject>, bool> FeedPresetMeal(CookingRecipe meal) {
+        private static Func<GameObject, List<GameObject>, bool> FeedPresetMeal(CookingRecipe Meal) {
             return (Leader, Companions) => {
-                return false;
+                string description = "";
+                foreach (var companion in Companions) {
+                    _ = companion.FireEvent("ClearFoodEffects");
+                    _ = companion.CleanEffects();
+                    description = Meal.GetApplyMessage();
+                    foreach (ICookingRecipeResult effect in Meal.Effects) {
+                        description += effect.apply(companion) + "\n";
+                    }
+                }
+                GameObject target = Companions[0];
+                string targetName = Companions[0].One();
+                if (Companions.Count > 1) {
+                    // make a fake object so we pluralize
+                    target = GameObject.create("Bones");
+                    targetName = "Your companions";
+                }
+                Popup.Show(targetName + target.GetVerb("start") + " to metabolize the meal, gaining the following effect for the rest of the day:\n\n&W" + Campfire.ProcessEffectDescription(description, target));
+                return true;
             };
         }
 
