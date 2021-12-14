@@ -156,13 +156,12 @@ namespace XRL.World.CleverGirl {
                         }
                     }
                 }
-                if (Campfire.hasSkill) {
-                    options.Add("Choose ingredients to cook with.");
-                    actions.Add((leader, companions) => FeedFromIngredients(leader, companions, campfires[0].GetPart<Campfire>()));
 
-                    options.Add("Cook from a recipe.");
-                    actions.Add(FeedFromRecipe);
-                }
+                options.Add(Campfire.EnabledDisplay(Campfire.hasSkill, "Choose ingredients to cook with."));
+                actions.Add((leader, companions) => FeedFromIngredients(leader, companions, campfires[0].GetPart<Campfire>()));
+
+                options.Add(Campfire.EnabledDisplay(Campfire.hasSkill, "Cook from a recipe."));
+                actions.Add(FeedFromRecipe);
             }
             // only hand-feed one at a time from inventories
             IRenderable introIcon = null;
@@ -243,7 +242,8 @@ namespace XRL.World.CleverGirl {
             public IRenderable Icon;
             public List<GameObject> Objects;
         }
-        private static bool FeedFromIngredients(GameObject Leader, List<GameObject> Companions, Campfire Campfire) {
+
+        private static List<Ingredient> CollectIngredients(GameObject Leader, List<GameObject> Companions) {
             var ingredients = Campfire.GetValidCookingIngredients(Leader);
             var anyCarnivorous = false;
             foreach (var companion in Companions) {
@@ -283,11 +283,59 @@ namespace XRL.World.CleverGirl {
                 }
             }
             finalIngredients.Sort((a, b) => ColorUtility.CompareExceptFormattingAndCase(a.Objects[0].GetDisplayName(NoColor: true), b.Objects[0].GetDisplayName(NoColor: true)));
+
+            return finalIngredients;
+        }
+
+        private static void UseIngredients(GameObject Leader, List<Ingredient> mealIngredients, int servings) {
+            var usedEvent = Event.New("UsedAsIngredient", "Actor", Leader);
+            foreach (var ingredient in mealIngredients) {
+                var remaining = servings;
+                for (int i = 0; remaining > 0 && i < ingredient.Objects.Count; ++i) {
+                    var obj = ingredient.Objects[i];
+                    _ = obj.FireEvent(usedEvent);
+                    if (obj.HasPart(nameof(PreparedCookingIngredient))) {
+                        var part = obj.GetPart<PreparedCookingIngredient>();
+                        if (part.HasTag("AlwaysStack")) {
+                            // GameObject.Destroy only destroys one of Stackers
+                            var toDestroy = Math.Min(remaining, part.charges);
+                            for (int j = 0; j < toDestroy; ++j) {
+                                _ = obj.Destroy();
+                                --remaining;
+                            }
+                        } else if (part.charges <= remaining) {
+                            remaining -= part.charges;
+                            _ = obj.Destroy();
+                        } else {
+                            part.charges -= remaining;
+                            _ = obj.SplitStack(remaining);
+                            remaining = 0;
+                            obj.CheckStack();
+                        }
+                    } else if (obj.LiquidVolume != null) {
+                        if (obj.LiquidVolume.Volume >= remaining) {
+                            _ = obj.LiquidVolume.UseDrams(remaining);
+                            remaining = 0;
+                        } else {
+                            remaining -= obj.LiquidVolume.Volume;
+                            _ = obj.LiquidVolume.UseDrams(obj.LiquidVolume.Volume);
+                        }
+                    }
+                }
+            }
+        }
+
+        private static bool FeedFromIngredients(GameObject Leader, List<GameObject> Companions, Campfire Campfire) {
+            if (!Campfire.hasSkill) {
+                Popup.Show("You don't have the Cooking and Gathering skill.");
+                return false;
+            }
+            List<Ingredient> ingredients = CollectIngredients(Leader, Companions);
             var maxIngredients = Leader.HasSkill("CookingAndGathering_Spicer") ? 3 : 2;
 
             var options = new List<string> { "" };
             var icons = new List<IRenderable> { null };
-            foreach (var ingredient in finalIngredients) {
+            foreach (var ingredient in ingredients) {
                 options.Add("[ ]   " + ingredient.Objects[0].GetDisplayName(1120) + " x" + Companions.Count);
                 icons.Add(ingredient.Objects[0].RenderForUI());
             }
@@ -327,11 +375,11 @@ namespace XRL.World.CleverGirl {
             var mealIngredients = new List<Ingredient>();
             var mealObjects = Event.NewGameObjectList();
             var mealEffectiveIngredients = Event.NewGameObjectList();
-            for (int i = 0; i < finalIngredients.Count; ++i) {
+            for (int i = 0; i < ingredients.Count; ++i) {
                 if (!options[i + 1].StartsWith(check)) {
                     continue;
                 }
-                var realObj = finalIngredients[i].Objects[0];
+                var realObj = ingredients[i].Objects[0];
                 var effectiveObj = realObj;
                 string type;
                 if (realObj.HasPart(nameof(PreparedCookingIngredient))) {
@@ -351,7 +399,7 @@ namespace XRL.World.CleverGirl {
                 if (!ingredientTypes.Contains(type)) {
                     ingredientTypes.Add(type);
                 }
-                mealIngredients.Add(finalIngredients[i]);
+                mealIngredients.Add(ingredients[i]);
                 mealObjects.Add(realObj);
                 mealEffectiveIngredients.Add(effectiveObj);
             }
@@ -432,43 +480,16 @@ namespace XRL.World.CleverGirl {
                 _ = target.Destroy(Silent: true, Obliterate: true);
             }
 
-            var usedEvent = Event.New("UsedAsIngredient", "Actor", Leader);
-            foreach (var ingredient in mealIngredients) {
-                var remaining = Companions.Count;
-                for (int i = 0; remaining > 0 && i < ingredient.Objects.Count; ++i) {
-                    var obj = ingredient.Objects[i];
-                    _ = obj.FireEvent(usedEvent);
-                    if (obj.HasPart(nameof(PreparedCookingIngredient))) {
-                        var part = obj.GetPart<PreparedCookingIngredient>();
-                        if (part.HasTag("AlwaysStack")) {
-                            // GameObject.Destroy only destroys one of Stackers
-                            for (int j = 0; j < remaining; ++j) {
-                                _ = obj.Destroy();
-                            }
-                        } else if (part.charges <= remaining) {
-                            remaining -= part.charges;
-                            _ = obj.Destroy();
-                        } else {
-                            part.charges -= remaining;
-                            _ = obj.SplitStack(remaining);
-                            remaining = 0;
-                            obj.CheckStack();
-                        }
-                    } else if (obj.LiquidVolume != null) {
-                        if (obj.LiquidVolume.Volume >= remaining) {
-                            _ = obj.LiquidVolume.UseDrams(remaining);
-                            remaining = 0;
-                        } else {
-                            remaining -= obj.LiquidVolume.Volume;
-                            _ = obj.LiquidVolume.UseDrams(obj.LiquidVolume.Volume);
-                        }
-                    }
-                }
-            }
+            UseIngredients(Leader, mealIngredients, Companions.Count);
             return true;
         }
 
         private static bool FeedFromRecipe(GameObject Leader, List<GameObject> Companions) {
+            if (!Campfire.hasSkill) {
+                Popup.Show("You don't have the Cooking and Gathering skill.");
+                return false;
+            }
+
             return false;
         }
 
