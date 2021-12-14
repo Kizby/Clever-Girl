@@ -62,36 +62,13 @@ namespace XRL.World.CleverGirl {
             return CollectUsableCampfires(Leader).Count > 0;
         }
 
-        public static List<GameObject> CollectFeedableCompanions(GameObject Leader) {
-            var result = new List<GameObject>();
-
-            // allow companions to be daisy-chained so long as they're adjacent to each other
-            var toInspect = new List<Cell> { Leader.CurrentCell };
-            for (int i = 0; i < toInspect.Count; ++i) {
-                var cell = toInspect[i];
-                cell.ForeachObject(obj => {
-                    if (obj == Leader || obj.IsLedBy(Leader)) {
-                        cell.ForeachLocalAdjacentCell(adj => {
-                            if (!toInspect.Contains(adj)) {
-                                toInspect.Add(adj);
-                            }
-                        });
-                        if (obj != Leader) {
-                            result.Add(obj);
-                        }
-                    }
-                });
-            }
-            return result;
-        }
-
         public static bool DoFeed(GameObject Leader, ref int EnergyCost) {
             var options = new List<string> {
                 "Feed everyone!",
                 ""
             };
             var icons = new List<IRenderable> { null, null };
-            var companions = CollectFeedableCompanions(Leader);
+            var companions = Utility.CollectNearbyCompanions(Leader).Where(c => c.HasPart(nameof(Stomach))).ToList();
             if (companions.Count == 1) {
                 EnergyCost = 100;
                 return DoFeed(Leader, companions);
@@ -350,6 +327,8 @@ namespace XRL.World.CleverGirl {
                         break;
                     case PreparedCookingRecipieComponentLiquid liquidComponent:
                         description += servings + "&y " + (servings > 1 ? "drams" : "dram") + " of " + LiquidVolume.getLiquid(liquidComponent.liquid).GetName();
+                        break;
+                    default:
                         break;
                 }
                 description += "&K(" + counts[component] + ")";

@@ -61,6 +61,29 @@ namespace XRL.World.CleverGirl {
             return Message;
         }
 
+        public static List<GameObject> CollectNearbyCompanions(GameObject Leader) {
+            var result = new List<GameObject>();
+
+            // allow companions to be daisy-chained so long as they're adjacent to each other
+            var toInspect = new List<Cell> { Leader.CurrentCell };
+            for (int i = 0; i < toInspect.Count; ++i) {
+                var cell = toInspect[i];
+                cell.ForeachObject(obj => {
+                    if (obj == Leader || obj.IsLedBy(Leader)) {
+                        cell.ForeachLocalAdjacentCell(adj => {
+                            if (!toInspect.Contains(adj)) {
+                                toInspect.Add(adj);
+                            }
+                        });
+                        if (obj != Leader) {
+                            result.Add(obj);
+                        }
+                    }
+                });
+            }
+            return result;
+        }
+
         public class InventoryAction {
             public string Name;
             public string Display;

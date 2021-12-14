@@ -85,7 +85,7 @@ namespace XRL.World.Parts {
                 E.RequestInterfaceExit();
             }
             if (E.Command == Feed.COOKING_ACTION.Command) {
-                if (Feed.CollectFeedableCompanions(E.Actor).Count == 0) {
+                if (Utility.CollectNearbyCompanions(E.Actor).Count == 0) {
                     Popup.Show("None of your companions are nearby!");
                 } else {
                     int EnergyCost = 100;
@@ -113,7 +113,7 @@ namespace XRL.World.Parts {
         public override bool HandleEvent(GetCookingActionsEvent E) {
             var action = Feed.COOKING_ACTION;
             _ = E.AddAction(action.Name,
-                            Campfire.EnabledDisplay(Feed.CollectFeedableCompanions(E.Actor).Count > 0, action.Display),
+                            Campfire.EnabledDisplay(Utility.CollectNearbyCompanions(E.Actor).Count > 0, action.Display),
                             action.Command,
                             Key: action.Key,
                             FireOnActor: true);
