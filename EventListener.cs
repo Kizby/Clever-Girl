@@ -15,7 +15,8 @@ namespace XRL.World.Parts {
             base.WantEvent(ID, cascade) ||
             ID == OwnerGetInventoryActionsEvent.ID ||
             ID == InventoryActionEvent.ID ||
-            ID == CommandEvent.ID;
+            ID == CommandEvent.ID ||
+            ID == GetCookingActionsEvent.ID;
 
         public override bool HandleEvent(OwnerGetInventoryActionsEvent E) {
             if (E.Actor == ParentObject && E.Object?.IsPlayerLed() == true && !E.Object.IsPlayer()) {
@@ -83,6 +84,17 @@ namespace XRL.World.Parts {
                 }
                 E.RequestInterfaceExit();
             }
+            if (E.Command == Feed.COOKING_ACTION.Command) {
+                if (Feed.CollectFeedableCompanions(E.Actor).Count == 0) {
+                    Popup.Show("None of your companions are nearby!");
+                } else {
+                    int EnergyCost = 100;
+                    if (Feed.DoFeed(E.Actor, ref EnergyCost)) {
+                        ParentObject.CompanionDirectionEnergyCost(E.Item, EnergyCost, "Feed Companions");
+                    }
+                    E.RequestInterfaceExit();
+                }
+            }
             return true;
         }
 
@@ -95,6 +107,16 @@ namespace XRL.World.Parts {
                 _ = ParentObject.UseEnergy(1000, "Pass");
                 Loading.SetLoadingStatus("Resting until party healed...");
             }
+            return true;
+        }
+
+        public override bool HandleEvent(GetCookingActionsEvent E) {
+            var action = Feed.COOKING_ACTION;
+            _ = E.AddAction(action.Name,
+                            Campfire.EnabledDisplay(Feed.CollectFeedableCompanions(E.Actor).Count > 0, action.Display),
+                            action.Command,
+                            Key: action.Key,
+                            FireOnActor: true);
             return true;
         }
 

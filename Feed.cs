@@ -6,6 +6,7 @@ namespace XRL.World.CleverGirl {
     using XRL.World.Effects;
     using XRL.World.Parts;
     using XRL.World.Parts.Mutation;
+    using XRL.World.Skills.Cooking;
 
     public static class Feed {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
@@ -14,6 +15,12 @@ namespace XRL.World.CleverGirl {
             Command = "CleverGirl_Feed",
             Key = 'f',
             Valid = CanFeed,
+        };
+        public static readonly Utility.InventoryAction COOKING_ACTION = new Utility.InventoryAction {
+            Name = "Clever Girl - Feed Multiple",
+            Display = "feed companions",
+            Command = "CleverGirl_FeedMultiple",
+            Key = 'd',
         };
 
         private static bool CanFeed(IInventoryActionsEvent E) {
@@ -29,41 +36,138 @@ namespace XRL.World.CleverGirl {
             return gameObject.HasObjectInInventory(item => item.HasPart(typeof(Food)));
         }
 
-        private static bool NextToUsableCampfire(GameObject gameObject) {
-            if (!gameObject.HasSkill("CookingAndGathering")) {
-                return false;
-            }
-            Cell cell = gameObject.pPhysics.CurrentCell;
+        private static List<GameObject> CollectUsableCampfires(GameObject Leader) {
+            var result = new List<GameObject>();
+            Cell cell = Leader.pPhysics.CurrentCell;
             if (cell == null) {
                 // how are we interacting with someone not in a cell?
-                return false;
+                return result;
             }
 
-            // haven't implemented campfires yet
-            return false && (cell.GetObjectCountWithPart("Campfire") > 0 || cell.AnyAdjacentCell(adj => adj.GetObjectCountWithPart("Campfire") > 0));
+            cell.ForeachLocalAdjacentCellAndSelf(adj => adj.ForeachObjectWithPart(nameof(Campfire), obj => {
+                if (Campfire.hasSkill || obj.GetPart<Campfire>().presetMeals.Count > 0) {
+                    result.Add(obj);
+                }
+            }));
+            return result;
         }
 
-        public static bool DoFeed(GameObject Leader, GameObject Companion) {
+        private static bool NextToUsableCampfire(GameObject Leader) {
+            // haven't implemented campfires yet
+            return CollectUsableCampfires(Leader).Count > 0;
+        }
+
+        public static List<GameObject> CollectFeedableCompanions(GameObject Leader) {
+            var result = new List<GameObject>();
+
+            // allow companions to be daisy-chained so long as they're adjacent to each other
+            var toInspect = new List<Cell> { Leader.CurrentCell };
+            for (int i = 0; i < toInspect.Count; ++i) {
+                var cell = toInspect[i];
+                cell.ForeachObject(obj => {
+                    if (obj == Leader || obj.IsLedBy(Leader)) {
+                        cell.ForeachLocalAdjacentCell(adj => {
+                            if (!toInspect.Contains(adj)) {
+                                toInspect.Add(adj);
+                            }
+                        });
+                        if (obj != Leader) {
+                            result.Add(obj);
+                        }
+                    }
+                });
+            }
+            return result;
+        }
+
+        public static bool DoFeed(GameObject Leader, ref int EnergyCost) {
             var options = new List<string>();
             var keys = new List<char>();
-            var actions = new List<Func<GameObject, GameObject, bool>>();
-            if (NextToUsableCampfire(Leader)) {
-                options.Add("Choose ingredients to cook with.");
-                actions.Add(FeedFromIngredients);
-
-                options.Add("Cook from a recipe.");
-                actions.Add(FeedFromRecipe);
+            options.Add("Feed everyone!");
+            options.Add("Feed selected:");
+            var companions = CollectFeedableCompanions(Leader);
+            if (companions.Count == 1) {
+                EnergyCost = 100;
+                return DoFeed(Leader, companions);
             }
-            if (Leader.Inventory != null) {
-                foreach (var item in Leader.Inventory.GetObjects(o => o.HasPart(typeof(Food)))) {
-                    options.Add(item.DisplayName);
-                    actions.Add(FeedItem(item));
+            foreach (var companion in companions) {
+                options.Add("- " + companion.one(WithIndefiniteArticle: true));
+            }
+            while (keys.Count < options.Count) {
+                if (keys.Count < 26) {
+                    keys.Add((char)('a' + keys.Count));
+                } else {
+                    keys.Add(' ');
                 }
             }
-            if (Companion.Inventory != null) {
-                foreach (var item in Companion.Inventory.GetObjects(o => o.HasPart(typeof(Food)))) {
-                    options.Add(item.DisplayName);
-                    actions.Add(FeedItem(item));
+            while (true) {
+                var index = Popup.ShowOptionList(Options: options.ToArray(),
+                                                Hotkeys: keys.ToArray(),
+                                                Intro: "Your companions {{watery|salivate}} expectantly.",
+                                                centerIntro: true,
+                                                AllowEscape: true);
+                if (index == -1) {
+                    return false;
+                }
+                if (index > 1) {
+                    options[index] = (options[index][0] == '-' ? "+" : "-") + options[index].Substring(1);
+                } else {
+                    var toFeed = new List<GameObject>();
+                    if (index == 0) {
+                        toFeed = companions;
+                    } else {
+                        for (int i = 2; i < options.Count; ++i) {
+                            if (options[i][0] == '+') {
+                                toFeed.Add(companions[i - 2]);
+                            }
+                        }
+                    }
+                    if (toFeed.Count > 0 && DoFeed(Leader, toFeed)) {
+                        EnergyCost = 100 * toFeed.Count;
+                        return true;
+                    }
+                }
+            }
+        }
+
+        private static bool DoFeed(GameObject Leader, List<GameObject> Companions) {
+            var options = new List<string>();
+            var keys = new List<char>();
+            var actions = new List<Func<GameObject, List<GameObject>, bool>>();
+            var campfires = CollectUsableCampfires(Leader);
+            if (campfires.Count > 0) {
+                var presetMeals = new HashSet<CookingRecipe>();
+                foreach (var campfire in campfires) {
+                    foreach (var meal in campfire.GetPart<Campfire>().presetMeals) {
+                        if (presetMeals.Add(meal)) {
+                            options.Add(campfire.GetTag("PresetMealMessage") ?? "Eat " + meal.GetDisplayName().Replace("&W", "&Y").Replace("{{W|", "{{Y|"));
+                            actions.Add(FeedPresetMeal(meal));
+                        }
+                    }
+                }
+                if (Campfire.hasSkill) {
+                    options.Add("Choose ingredients to cook with.");
+                    actions.Add(FeedFromIngredients);
+
+                    options.Add("Cook from a recipe.");
+                    actions.Add(FeedFromRecipe);
+                }
+            }
+            // only hand-feed one at a time from inventories
+            if (Companions.Count == 1) {
+                if (Leader.Inventory != null) {
+                    foreach (var item in Leader.Inventory.GetObjects(o => o.HasPart(typeof(Food)))) {
+                        options.Add(item.DisplayName);
+                        actions.Add((leader, companions) => FeedItem(item)(leader, companions[0]));
+                    }
+                }
+                foreach (var Companion in Companions) {
+                    if (Companion.Inventory != null) {
+                        foreach (var item in Companion.Inventory.GetObjects(o => o.HasPart(typeof(Food)))) {
+                            options.Add(item.DisplayName);
+                            actions.Add((leader, companions) => FeedItem(item)(leader, companions[0]));
+                        }
+                    }
                 }
             }
             while (keys.Count < options.Count) {
@@ -81,17 +185,27 @@ namespace XRL.World.CleverGirl {
                 if (index == -1) {
                     return false;
                 }
-                if (actions[index](Leader, Companion)) {
+                if (actions[index](Leader, Companions)) {
                     return true;
                 }
             }
         }
 
-        private static bool FeedFromIngredients(GameObject Leader, GameObject Companion) {
+        private static Func<GameObject, List<GameObject>, bool> FeedPresetMeal(CookingRecipe meal) {
+            return (Leader, Companions) => {
+                return false;
+            };
+        }
+
+        public static bool DoFeed(GameObject Leader, GameObject Companion) {
+            return DoFeed(Leader, new List<GameObject> { Companion });
+        }
+
+        private static bool FeedFromIngredients(GameObject Leader, List<GameObject> Companions) {
             return false;
         }
 
-        private static bool FeedFromRecipe(GameObject Leader, GameObject Companion) {
+        private static bool FeedFromRecipe(GameObject Leader, List<GameObject> Companions) {
             return false;
         }
 
