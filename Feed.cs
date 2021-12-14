@@ -1,6 +1,7 @@
 namespace XRL.World.CleverGirl {
     using System;
     using System.Collections.Generic;
+    using ConsoleLib.Console;
     using XRL.Rules;
     using XRL.UI;
     using XRL.World.Effects;
@@ -81,43 +82,48 @@ namespace XRL.World.CleverGirl {
         }
 
         public static bool DoFeed(GameObject Leader, ref int EnergyCost) {
-            var options = new List<string>();
-            var keys = new List<char>();
-            options.Add("Feed everyone!");
-            options.Add("Feed selected:");
+            var options = new List<string> {
+                "Feed everyone!",
+                ""
+            };
+            var icons = new List<IRenderable> { null, null };
             var companions = CollectFeedableCompanions(Leader);
             if (companions.Count == 1) {
                 EnergyCost = 100;
                 return DoFeed(Leader, companions);
             }
             foreach (var companion in companions) {
-                options.Add("- " + companion.one(WithIndefiniteArticle: true));
+                options.Add("[ ]   " + companion.one(WithIndefiniteArticle: true));
+                icons.Add(companion.RenderForUI());
             }
-            while (keys.Count < options.Count) {
-                if (keys.Count < 26) {
-                    keys.Add((char)('a' + keys.Count));
-                } else {
-                    keys.Add(' ');
-                }
-            }
+            const string check = "{{y|[{{G|X}}]}}";
+            var feedCount = 0;
             while (true) {
-                var index = Popup.ShowOptionList(Options: options.ToArray(),
-                                                Hotkeys: keys.ToArray(),
-                                                Intro: "Your companions {{watery|salivate}} expectantly.",
+                options[1] = (feedCount == 0 ? "&K" : "") + "Feed " + feedCount + " selected companion" + (feedCount == 1 ? "" : "s") + ".";
+                var index = Popup.ShowOptionList("{{W|Your companions {{watery|salivate}} expectantly.}}",
+                                                Options: options.ToArray(),
+                                                Icons: icons.ToArray(),
+                                                iconPosition: 6,
                                                 centerIntro: true,
                                                 AllowEscape: true);
                 if (index == -1) {
                     return false;
                 }
                 if (index > 1) {
-                    options[index] = (options[index][0] == '-' ? "+" : "-") + options[index].Substring(1);
+                    if (options[index].StartsWith(check)) {
+                        options[index] = "[ ]" + options[index].Substring(check.Length);
+                        --feedCount;
+                    } else {
+                        options[index] = check + options[index].Substring("[ ]".Length);
+                        ++feedCount;
+                    }
                 } else {
                     var toFeed = new List<GameObject>();
                     if (index == 0) {
                         toFeed = companions;
                     } else {
                         for (int i = 2; i < options.Count; ++i) {
-                            if (options[i][0] == '+') {
+                            if (options[i].StartsWith(check)) {
                                 toFeed.Add(companions[i - 2]);
                             }
                         }
@@ -154,6 +160,7 @@ namespace XRL.World.CleverGirl {
                 }
             }
             // only hand-feed one at a time from inventories
+            IRenderable introIcon = null;
             if (Companions.Count == 1) {
                 if (Leader.Inventory != null) {
                     foreach (var item in Leader.Inventory.GetObjects(o => o.HasPart(typeof(Food)))) {
@@ -168,6 +175,7 @@ namespace XRL.World.CleverGirl {
                             actions.Add((leader, companions) => FeedItem(item)(leader, companions[0]));
                         }
                     }
+                    introIcon = Companion.RenderForUI();
                 }
             }
             while (keys.Count < options.Count) {
@@ -178,9 +186,10 @@ namespace XRL.World.CleverGirl {
                 }
             }
             while (true) {
-                var index = Popup.ShowOptionList(Options: options.ToArray(),
+                var index = Popup.ShowOptionList("What's for dinner, boss?",
+                                                Options: options.ToArray(),
                                                 Hotkeys: keys.ToArray(),
-                                                Intro: "What's for dinner, boss?",
+                                                IntroIcon: introIcon,
                                                 AllowEscape: true);
                 if (index == -1) {
                     return false;
