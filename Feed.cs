@@ -11,9 +11,9 @@ namespace XRL.World.CleverGirl {
     public static class Feed {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Feed",
-            Display = "{{inventoryhotkey|f}}eed",
+            Display = "fee{{inventoryhotkey|d}}",
             Command = "CleverGirl_Feed",
-            Key = 'f',
+            Key = 'd',
             Valid = CanFeed,
         };
         public static readonly Utility.InventoryAction COOKING_ACTION = new Utility.InventoryAction {
