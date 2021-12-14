@@ -1,6 +1,8 @@
 namespace XRL.World.CleverGirl {
     using System;
     using System.Collections.Generic;
+    using System.Collections.Immutable;
+    using System.Linq;
     using ConsoleLib.Console;
     using HarmonyLib;
     using Qud.API;
@@ -21,7 +23,7 @@ namespace XRL.World.CleverGirl {
         };
         public static readonly Utility.InventoryAction COOKING_ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Feed Multiple",
-            Display = "feed companions",
+            Display = "Feed companions",
             Command = "CleverGirl_FeedMultiple",
             Key = 'd',
         };
@@ -160,8 +162,8 @@ namespace XRL.World.CleverGirl {
                 options.Add(Campfire.EnabledDisplay(Campfire.hasSkill, "Choose ingredients to cook with."));
                 actions.Add((leader, companions) => FeedFromIngredients(leader, companions, campfires[0].GetPart<Campfire>()));
 
-                options.Add(Campfire.EnabledDisplay(Campfire.hasSkill, "Cook from a recipe."));
-                actions.Add(FeedFromRecipe);
+                options.Add(Campfire.EnabledDisplay(Campfire.hasSkill && CookingGamestate.instance.knownRecipies.Any(r => !r.Hidden), "Cook from a recipe."));
+                actions.Add((leader, companions) => FeedFromRecipe(leader, companions, campfires[0].GetPart<Campfire>()));
             }
             // only hand-feed one at a time from inventories
             IRenderable introIcon = null;
@@ -276,12 +278,7 @@ namespace XRL.World.CleverGirl {
                 edibleIngredients[name].Objects.Add(ingredient);
             }
 
-            var finalIngredients = new List<Ingredient>();
-            foreach (var ingredient in edibleIngredients.Values) {
-                if (ingredient.Count >= Companions.Count) {
-                    finalIngredients.Add(ingredient);
-                }
-            }
+            var finalIngredients = edibleIngredients.Values.ToList();
             finalIngredients.Sort((a, b) => ColorUtility.CompareExceptFormattingAndCase(a.Objects[0].GetDisplayName(NoColor: true), b.Objects[0].GetDisplayName(NoColor: true)));
 
             return finalIngredients;
@@ -325,12 +322,54 @@ namespace XRL.World.CleverGirl {
             }
         }
 
+        private static string GetCampfireDescription(CookingRecipe recipe, bool cookable, Dictionary<ICookingRecipeComponent, int> counts, int servings) {
+            var description = "";
+            if (recipe.Favorite) {
+                description = "&R\x0003&W ";
+            }
+            if (!cookable) {
+                description += "&K" + ColorUtility.StripFormatting(recipe.GetDisplayName());
+            } else {
+                description += recipe.GetDisplayName();
+            }
+            description += "\n&y";
+            bool first = true;
+            foreach (var component in recipe.Components) {
+                if (first) {
+                    first = false;
+                } else {
+                    description += "&y, ";
+                }
+                description += counts[component] >= servings ? "&C" : "&r";
+                switch (component) {
+                    case PreparedCookingRecipieComponentBlueprint blueprintComponent:
+                        description += servings + "&y " + (servings > 1 ? "servings" : "serving") + " of " + blueprintComponent.ingredientDisplayName;
+                        break;
+                    case PreparedCookingRecipieComponentDomain domainComponent:
+                        description += servings + "&y " + (servings > 1 ? "servings" : "serving") + " of " + domainComponent.ingredientType;
+                        break;
+                    case PreparedCookingRecipieComponentLiquid liquidComponent:
+                        description += servings + "&y " + (servings > 1 ? "drams" : "dram") + " of " + LiquidVolume.getLiquid(liquidComponent.liquid).GetName();
+                        break;
+                }
+                description += "&K(" + counts[component] + ")";
+            }
+            description += "&y";
+            return description + "\n\n" + recipe.GetDescription();
+        }
+
+
         private static bool FeedFromIngredients(GameObject Leader, List<GameObject> Companions, Campfire Campfire) {
             if (!Campfire.hasSkill) {
                 Popup.Show("You don't have the Cooking and Gathering skill.");
                 return false;
             }
-            List<Ingredient> ingredients = CollectIngredients(Leader, Companions);
+            var ingredients = new List<Ingredient>();
+            foreach (var ingredient in CollectIngredients(Leader, Companions)) {
+                if (ingredient.Count >= Companions.Count) {
+                    ingredients.Add(ingredient);
+                }
+            }
             var maxIngredients = Leader.HasSkill("CookingAndGathering_Spicer") ? 3 : 2;
 
             var options = new List<string> { "" };
@@ -484,13 +523,209 @@ namespace XRL.World.CleverGirl {
             return true;
         }
 
-        private static bool FeedFromRecipe(GameObject Leader, List<GameObject> Companions) {
+        private static bool FeedFromRecipe(GameObject Leader, List<GameObject> Companions, Campfire Campfire) {
             if (!Campfire.hasSkill) {
                 Popup.Show("You don't have the Cooking and Gathering skill.");
                 return false;
             }
 
-            return false;
+            var ingredients = CollectIngredients(Leader, Companions);
+
+            var recipes = new List<Tuple<string, CookingRecipe>>();
+            var componentCounts = new Dictionary<CookingRecipe, Dictionary<ICookingRecipeComponent, int>>();
+            var recipeIngredients = new Dictionary<CookingRecipe, List<Ingredient>>();
+            var uncookableMessages = new Dictionary<CookingRecipe, string>();
+            foreach (var knownRecipe in CookingGamestate.instance.knownRecipies) {
+                if (knownRecipe.Hidden) {
+                    continue;
+                }
+
+                bool cookable = true;
+                recipeIngredients[knownRecipe] = new List<Ingredient>();
+                componentCounts[knownRecipe] = new Dictionary<ICookingRecipeComponent, int>();
+                foreach (var component in knownRecipe.Components) {
+                    // consolidate ingredients across multiple inventories
+                    Ingredient gestaltIngredient = null;
+                    void addToGestalt(Ingredient ingredient) {
+                        if (gestaltIngredient == null) {
+                            gestaltIngredient = ingredient;
+                        } else {
+                            gestaltIngredient.Count += ingredient.Count;
+                            gestaltIngredient.Objects.AddRange(ingredient.Objects);
+                        }
+                    }
+                    switch (component) {
+                        case PreparedCookingRecipieComponentBlueprint blueprintComponent:
+                            var blueprints = blueprintComponent.ingredientBlueprint.Split('|').ToImmutableHashSet();
+                            foreach (var ingredient in ingredients) {
+                                if (blueprints.Contains(ingredient.Objects[0].Blueprint)) {
+                                    addToGestalt(ingredient);
+                                }
+                            }
+                            break;
+                        case PreparedCookingRecipieComponentDomain domainComponent:
+                            foreach (var ingredient in ingredients) {
+                                if (ingredient.Objects[0].GetPart<PreparedCookingIngredient>()?.type == domainComponent.ingredientType) {
+                                    addToGestalt(ingredient);
+                                }
+                            }
+                            break;
+                        case PreparedCookingRecipieComponentLiquid liquidComponent:
+                            foreach (var ingredient in ingredients) {
+                                foreach (var obj in ingredient.Objects) {
+                                    var volume = obj.GetPart<LiquidVolume>();
+                                    if (volume?.IsPureLiquid(liquidComponent.liquid) == true) {
+                                        if (gestaltIngredient == null) {
+                                            gestaltIngredient = new Ingredient {
+                                                Name = ingredient.Name,
+                                                Count = 0,
+                                                Icon = ingredient.Icon,
+                                                Objects = new List<GameObject>()
+                                            };
+                                        }
+                                        gestaltIngredient.Count += volume.Volume;
+                                        gestaltIngredient.Objects.Add(obj);
+                                    }
+                                }
+                            }
+                            break;
+                        default:
+                            // ???
+                            break;
+                    }
+                    componentCounts[knownRecipe][component] = gestaltIngredient?.Count ?? 0;
+                    if (gestaltIngredient == null || gestaltIngredient.Count < Companions.Count) {
+                        cookable = false;
+                        uncookableMessages[knownRecipe] = component.createPlayerDoesNotHaveEnoughMessage();
+                    }
+                    if (gestaltIngredient != null) {
+                        recipeIngredients[knownRecipe].Add(gestaltIngredient);
+                    }
+                }
+                recipes.Add(Tuple.Create(GetCampfireDescription(knownRecipe, cookable, componentCounts[knownRecipe], Companions.Count) + "\n\n", knownRecipe));
+            }
+            if (recipes.Count == 0) {
+                Popup.Show("You don't know any recipes.");
+                return false;
+            }
+            recipes.Sort((a, b) => ColorUtility.CompareExceptFormattingAndCase(a.Item1, b.Item1));
+            var cookableRecipes = recipes.Where(t => !uncookableMessages.Keys.Contains(t.Item2)).ToList();
+            cookableRecipes.Add(Tuple.Create<string, CookingRecipe>("Show " + uncookableMessages.Count + " hidden recipes missing ingredients", null));
+
+            var showUncookable = false;
+            if (uncookableMessages.Count == recipes.Count) {
+                showUncookable = true;
+            }
+
+            var relevantRecipes = showUncookable ? recipes : cookableRecipes;
+            var index = 0;
+            CookingRecipe recipe = null;
+            bool doCook;
+            do {
+                doCook = false;
+                index = Popup.ShowOptionList("Choose a recipe",
+                                             relevantRecipes.Select(t => t.Item1).ToArray(),
+                                             Spacing: 1,
+                                             Intro: showUncookable ? "" : "&K< " + uncookableMessages.Count + " hidden for missing ingredients >",
+                                             MaxWidth: 72,
+                                             RespectOptionNewlines: true,
+                                             AllowEscape: true,
+                                             defaultSelected: Math.Max(index, 0),
+                                             SpacingText: Popup.SPACING_DARK_LINE.Replace('=', '÷'));
+                if (index == -1) {
+                    return false;
+                }
+                recipe = relevantRecipes[index].Item2;
+                if (recipe == null) {
+                    showUncookable = true;
+                    relevantRecipes = recipes;
+                    continue;
+                }
+                while (!doCook) {
+                    var options = new List<string> {
+                        "Cook",
+                        recipe.Favorite ? "Remove from favorite recipes" : "Add to favorite recipes",
+                        "Forget",
+                        "Back",
+                    };
+                    var cancelled = false;
+                    switch (Popup.ShowOptionList(Options: options.ToArray(),
+                                                 Intro: relevantRecipes[index].Item1,
+                                                 MaxWidth: 72,
+                                                 RespectOptionNewlines: true,
+                                                 AllowEscape: true)) {
+                        case 0:
+                            doCook = true;
+                            break;
+                        case 1:
+                            recipe.Favorite = !recipe.Favorite;
+                            // update the description to show it's (not) a favorite
+                            var newTuple = Tuple.Create(GetCampfireDescription(recipe, !uncookableMessages.ContainsKey(recipe), componentCounts[recipe], Companions.Count), recipe);
+                            for (int i = 0; i < recipes.Count; ++i) {
+                                if (recipes[i].Item2 == recipe) {
+                                    recipes[i] = newTuple;
+                                }
+                                if (i < cookableRecipes.Count && cookableRecipes[i].Item2 == recipe) {
+                                    cookableRecipes[i] = newTuple;
+                                }
+                            }
+                            continue;
+                        case 2:
+                            if (Popup.ShowYesNo("Are you sure you want to forget this recipe?") == DialogResult.Yes) {
+                                recipe.Hidden = true;
+                                _ = recipes.Remove(recipes.First(t => t.Item2 == recipe));
+                                _ = cookableRecipes.Remove(cookableRecipes.First(t => t.Item2 == recipe));
+                            }
+                            cancelled = true;
+                            break;
+                        default:
+                            cancelled = true;
+                            break;
+                    }
+                    if (cancelled) {
+                        break;
+                    }
+                }
+                if (doCook && uncookableMessages.ContainsKey(recipe)) {
+                    Popup.Show(uncookableMessages[recipe]);
+                }
+            } while (recipe == null || !doCook || uncookableMessages.ContainsKey(relevantRecipes[index].Item2));
+
+            _ = Leader.FireEvent(Event.New("CookedAt", "Object", Campfire.ParentObject));
+            var description = "";
+            foreach (var companion in Companions) {
+                _ = companion.FireEvent("ClearFoodEffects");
+                _ = companion.CleanEffects();
+
+                var tasty = Campfire.ForceTastyBasedOnIngredients(recipeIngredients[recipe].ConvertAll(i => i.Objects[0])) || 10.in100();
+                if (tasty) {
+                    _ = companion.ApplyEffect(AccessTools.Method(typeof(Campfire), "RandomTastyEffect").Invoke(null, new object[] { "" }) as Effect);
+                }
+
+                description = "";
+                foreach (var effect in recipe.Effects) {
+                    description += effect.apply(companion) + "\n";
+                }
+            }
+
+            GameObject target = Companions[0];
+            bool fakeTarget = false;
+            string targetName = Companions[0].One();
+            if (Companions.Count > 1) {
+                // make a fake object so we pluralize
+                target = GameObject.create("Bones");
+                fakeTarget = true;
+                targetName = "Your companions";
+            }
+
+            Popup.Show(targetName + target.GetVerb("start") + " to metabolize the meal, gaining the following effect for the rest of the day:\n\n&W" + Campfire.ProcessEffectDescription(description, target));
+
+            if (fakeTarget) {
+                _ = target.Destroy(Silent: true, Obliterate: true);
+            }
+
+            UseIngredients(Leader, recipeIngredients[recipe], Companions.Count);
+            return true;
         }
 
         private static Func<GameObject, GameObject, bool> FeedItem(GameObject Item) {
