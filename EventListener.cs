@@ -7,6 +7,7 @@ namespace XRL.World.Parts {
     using XRL.UI;
     using XRL.World.Capabilities;
     using XRL.World.CleverGirl;
+    using XRL.World.Parts.CleverGirl;
 
     [Serializable]
     public class CleverGirl_EventListener : IPart, IXmlSerializable {
@@ -94,6 +95,13 @@ namespace XRL.World.Parts {
                     }
                     E.RequestInterfaceExit();
                 }
+            }
+            if (E.Command == CyberneticsTerminal2_HandleEvent_GetInventoryActionsEvent.ACTION.Command) {
+                GameObject companion = null;
+                if (Interface.DoInterface(E, ref companion)) {
+                    ParentObject.CompanionDirectionEnergyCost(companion, 100, "Interface");
+                }
+                E.RequestInterfaceExit();
             }
             return true;
         }
