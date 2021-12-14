@@ -100,10 +100,11 @@ dotnet_diagnostic.RCS1036.severity = none
 # Suggest "Remove 'partial' modifier from type with a single part"
 # This may be done intentionally to allow future extension.
 dotnet_diagnostic.RCS1043.severity = suggestion
-# Disable "Remove unnecessary case label"
+# Disable "Remove unnecessary case label" and "Remove redundant default switch section"
 # Conflicts with IDE0010 "Populate switch"
 # I'd prefer to be more explicit about cases.
 dotnet_diagnostic.RCS1069.severity = none
+dotnet_diagnostic.RCS1070.severity = none
 # Disable "Use --/++ operator instead of assignment"
 # I find the more explicit assignment preferable most of the time.
 dotnet_diagnostic.RCS1089.severity = none
