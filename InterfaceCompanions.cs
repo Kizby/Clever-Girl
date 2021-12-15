@@ -6,7 +6,7 @@ namespace XRL.World.CleverGirl {
     using XRL.UI;
     using XRL.World;
 
-    public static class Interface {
+    public static class InterfaceCompanions {
         public static bool DoInterface(InventoryActionEvent E, ref GameObject Companion) {
             var companions = Utility.CollectNearbyCompanions(E.Actor).Where(c => c.IsTrueKin()).ToList();
             var options = new List<string>();

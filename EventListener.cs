@@ -98,7 +98,7 @@ namespace XRL.World.Parts {
             }
             if (E.Command == CyberneticsTerminal2_HandleEvent_GetInventoryActionsEvent.ACTION.Command) {
                 GameObject companion = null;
-                if (Interface.DoInterface(E, ref companion)) {
+                if (InterfaceCompanions.DoInterface(E, ref companion)) {
                     ParentObject.CompanionDirectionEnergyCost(companion, 100, "Interface");
                 }
                 E.RequestInterfaceExit();
