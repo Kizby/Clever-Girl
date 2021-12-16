@@ -242,12 +242,13 @@ namespace XRL.World.CleverGirl {
                 int count;
                 IRenderable icon = ingredient.RenderForUI();
                 if (ingredient.LiquidVolume != null) {
-                    name = ingredient.LiquidVolume.GetPreparedCookingIngredient();
+                    name = ingredient.LiquidVolume.GetLiquidName().Strip();
                     count = ingredient.LiquidVolume.Volume;
                 } else {
-                    name = ingredient.GetCachedDisplayNameStripped();
+                    name = ingredient.Blueprint;
                     count = ingredient.Count;
                 }
+                Utility.MaybeLog(name);
                 if (!edibleIngredients.ContainsKey(name)) {
                     edibleIngredients[name] = new Ingredient { Name = name, Count = 0, Icon = icon, Objects = new List<GameObject>() };
                 }
@@ -358,7 +359,7 @@ namespace XRL.World.CleverGirl {
                 if (ingredient.Objects[0].HasPart(nameof(LiquidVolume))) {
                     name = ingredient.Objects[0].LiquidVolume.GetLiquidName();
                 }
-                options.Add("[ ]   " + name + " x" + Companions.Count);
+                options.Add("[ ]   " + name + (Companions.Count == 1 ? "" : " x" + Companions.Count));
                 icons.Add(ingredient.Objects[0].RenderForUI());
             }
             const string check = "{{y|[{{G|X}}]}}";
