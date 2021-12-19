@@ -29,6 +29,20 @@ namespace XRL.World.Parts {
             Key = 'p',
             Valid = e => e.Object.HasPart(typeof(CleverGirl_AIPickupGear)),
         };
+        public static readonly Utility.InventoryAction FOLLOWER_ENABLE = new Utility.InventoryAction {
+            Name = "Clever Girl - Enable Follower Gear Pickup",
+            Display = "enable follower gear {{inventoryhotkey|p}}ickup",
+            Command = "CleverGirl_EnableFollowerGearPickup",
+            Key = 'P',
+            Valid = e => Utility.CollectFollowersOf(e.Object).Any(obj => !obj.HasPart(nameof(CleverGirl_AIPickupGear))),
+        };
+        public static readonly Utility.InventoryAction FOLLOWER_DISABLE = new Utility.InventoryAction {
+            Name = "Clever Girl - Disable Gear Pickup",
+            Display = "disable follower gear {{inventoryhotkey|p}}ickup",
+            Command = "CleverGirl_DisableFollowerGearPickup",
+            Key = 'P',
+            Valid = e => Utility.CollectFollowersOf(e.Object).Any(obj => obj.HasPart(nameof(CleverGirl_AIPickupGear))),
+        };
 
         public override bool WantTurnTick() => true;
 

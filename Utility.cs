@@ -1,5 +1,6 @@
 namespace XRL.World.CleverGirl {
     using System;
+    using System.Linq;
     using System.Collections.Generic;
     using System.Runtime.CompilerServices;
     using System.Text.RegularExpressions;
@@ -82,6 +83,10 @@ namespace XRL.World.CleverGirl {
                 });
             }
             return result;
+        }
+
+        public static IEnumerable<GameObject> CollectFollowersOf(GameObject Leader) {
+            return The.ActiveZone.GetObjects().Where(obj => obj.IsLedBy(Leader));
         }
 
         public class InventoryAction {
