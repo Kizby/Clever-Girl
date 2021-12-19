@@ -112,6 +112,9 @@ namespace XRL.World.Parts {
             var toDrop = new List<string>();
             foreach (var mutationName in FocusingMutations) {
                 var mutation = ParentObject.GetPart<Mutations>().GetMutation(mutationName);
+                if (mutation == null) {
+                    continue;
+                }
                 if (mutation.CanIncreaseLevel()) {
                     pool.Add(mutation);
                 } else if (!mutation.IsPhysical() && mutation.BaseLevel == mutation.GetMaxLevel()) {
