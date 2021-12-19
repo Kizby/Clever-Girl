@@ -8,7 +8,7 @@ namespace XRL.World.Parts.CleverGirl {
 
     // disable smart use if we might be interfacing companions
     [HarmonyPatch(typeof(CyberneticsTerminal2), "HandleEvent", new Type[] { typeof(CanSmartUseEvent) })]
-    public static class CyberneticsTerminal2_HandleEvent_CanSmartUseEvent {
+    public static class CyberneticsTerminal2_HandleEvent_CanSmartUseEvent_Patch {
         static void Postfix(CanSmartUseEvent E, ref bool __result) {
             __result = __result || Utility.CollectNearbyCompanions(E.Actor).Any(c => c.IsTrueKin());
         }
@@ -16,7 +16,7 @@ namespace XRL.World.Parts.CleverGirl {
 
     // add "interface a companion" option to terminal
     [HarmonyPatch(typeof(CyberneticsTerminal2), "HandleEvent", new Type[] { typeof(GetInventoryActionsEvent) })]
-    public static class CyberneticsTerminal2_HandleEvent_GetInventoryActionsEvent {
+    public static class CyberneticsTerminal2_HandleEvent_GetInventoryActionsEvent_Patch {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Interface Companion",
             Display = "interface a companion",
@@ -33,7 +33,7 @@ namespace XRL.World.Parts.CleverGirl {
 
     // include player inventory in collection of possible implants and credits
     [HarmonyPatch(typeof(CyberneticsTerminal), "set_currentScreen")]
-    public static class CyberneticsTerminal_set_currentScreen {
+    public static class CyberneticsTerminal_set_currentScreen_Patch {
         static void Postfix(CyberneticsTerminal __instance) {
             if (__instance.obj == The.Player) {
                 return;
@@ -54,7 +54,7 @@ namespace XRL.World.Parts.CleverGirl {
 
     // put unimplanted cybernetics in the player's inventory
     [HarmonyPatch(typeof(CyberneticsScreenRemove), "Activate")]
-    public static class CyberneticsScreenRemove_Activate {
+    public static class CyberneticsScreenRemove_Activate_Patch {
         static void Postfix(CyberneticsScreenRemove __instance) {
             if (__instance.terminal.obj == The.Player || The.Player.Inventory == null) {
                 return;
