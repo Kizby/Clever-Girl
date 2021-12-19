@@ -20,28 +20,28 @@ namespace XRL.World.Parts {
             Display = "enable gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_EnableGearPickup",
             Key = 'p',
-            Valid = e => !e.Object.HasPart(typeof(CleverGirl_AIPickupGear)),
+            Valid = e => e.Object.PartyLeader == The.Player && !e.Object.HasPart(typeof(CleverGirl_AIPickupGear)),
         };
         public static readonly Utility.InventoryAction DISABLE = new Utility.InventoryAction {
             Name = "Clever Girl - Disable Gear Pickup",
             Display = "disable gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_DisableGearPickup",
             Key = 'p',
-            Valid = e => e.Object.HasPart(typeof(CleverGirl_AIPickupGear)),
+            Valid = e => e.Object.PartyLeader == The.Player && e.Object.HasPart(typeof(CleverGirl_AIPickupGear)),
         };
         public static readonly Utility.InventoryAction FOLLOWER_ENABLE = new Utility.InventoryAction {
             Name = "Clever Girl - Enable Follower Gear Pickup",
             Display = "enable follower gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_EnableFollowerGearPickup",
             Key = 'P',
-            Valid = e => Utility.CollectFollowersOf(e.Object).Any(obj => !obj.HasPart(nameof(CleverGirl_AIPickupGear))),
+            Valid = e => e.Object.PartyLeader == The.Player && Utility.CollectFollowersOf(e.Object).Any(obj => !obj.HasPart(nameof(CleverGirl_AIPickupGear))),
         };
         public static readonly Utility.InventoryAction FOLLOWER_DISABLE = new Utility.InventoryAction {
             Name = "Clever Girl - Disable Gear Pickup",
             Display = "disable follower gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_DisableFollowerGearPickup",
             Key = 'P',
-            Valid = e => Utility.CollectFollowersOf(e.Object).Any(obj => obj.HasPart(nameof(CleverGirl_AIPickupGear))),
+            Valid = e => e.Object.PartyLeader == The.Player && Utility.CollectFollowersOf(e.Object).Any(obj => obj.HasPart(nameof(CleverGirl_AIPickupGear))),
         };
 
         public override bool WantTurnTick() => true;

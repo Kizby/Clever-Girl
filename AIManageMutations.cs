@@ -15,10 +15,12 @@ namespace XRL.World.Parts {
             Display = "manage mu{{inventoryhotkey|t}}ations",
             Command = "CleverGirl_ManageMutations",
             Key = 't',
+            Valid = E => E.Object.PartyLeader == The.Player,
         };
         public static string PROPERTY => "CleverGirl_AIManageMutations";
         public static string FOCUSINGMUTATIONS_PROPERTY => PROPERTY + "_FocusingMutations";
         public static string WANTNEWMUTATIONS_PROPERTY => PROPERTY + "_WantNewMutations";
+        public static string FOLLOWERSWANTNEWMUTATIONS_PROPERTY => PROPERTY + "_FollowersWantNewMutations";
         public static string NEWMUTATIONSAVINGS_PROPERTY => PROPERTY + "_NewMutationSavings";
 
         public override void Register(GameObject Object) {
@@ -29,6 +31,9 @@ namespace XRL.World.Parts {
             if (!Object.HasIntProperty(WANTNEWMUTATIONS_PROPERTY)) {
                 _ = Object.SetIntProperty(WANTNEWMUTATIONS_PROPERTY, 0);
             }
+            if (!Object.HasIntProperty(FOLLOWERSWANTNEWMUTATIONS_PROPERTY)) {
+                _ = Object.SetIntProperty(FOLLOWERSWANTNEWMUTATIONS_PROPERTY, 0);
+            }
             if (!Object.HasIntProperty(NEWMUTATIONSAVINGS_PROPERTY)) {
                 _ = Object.SetIntProperty(NEWMUTATIONSAVINGS_PROPERTY, 0);
             }
@@ -37,6 +42,7 @@ namespace XRL.World.Parts {
             ParentObject.RemoveIntProperty(PROPERTY);
             ParentObject.RemoveStringProperty(FOCUSINGMUTATIONS_PROPERTY);
             ParentObject.RemoveIntProperty(WANTNEWMUTATIONS_PROPERTY);
+            ParentObject.RemoveIntProperty(FOLLOWERSWANTNEWMUTATIONS_PROPERTY);
             ParentObject.RemoveIntProperty(NEWMUTATIONSAVINGS_PROPERTY);
         }
         public List<string> FocusingMutations {
@@ -47,6 +53,10 @@ namespace XRL.World.Parts {
         public bool WantNewMutations {
             get => ParentObject.GetIntProperty(WANTNEWMUTATIONS_PROPERTY) == 1;
             set => ParentObject.SetIntProperty(WANTNEWMUTATIONS_PROPERTY, value ? 1 : 0);
+        }
+        public bool FollowersWantNewMutations {
+            get => ParentObject.GetIntProperty(FOLLOWERSWANTNEWMUTATIONS_PROPERTY) == 1;
+            set => ParentObject.SetIntProperty(FOLLOWERSWANTNEWMUTATIONS_PROPERTY, value ? 1 : 0);
         }
         public int NewMutationSavings {
             get => ParentObject.GetIntProperty(NEWMUTATIONSAVINGS_PROPERTY);
@@ -132,8 +142,22 @@ namespace XRL.World.Parts {
                     Utility.MaybeLog("Learning a new mutation");
                     // learn a new mutation
                     var mutations = ParentObject.GetPart<Mutations>();
-                    var possibleMutations = mutations.GetMutatePool()
+                    List<MutationEntry> possibleMutations;
+                    var isFollower = ParentObject.PartyLeader.HasPart(nameof(CleverGirl_AIManageMutations));
+                    if (isFollower) {
+                        var myMutations = ParentObject.GetPart<Mutations>()
+                                                      .MutationList
+                                                      .ConvertAll(m => m.GetMutationEntry());
+                        possibleMutations = ParentObject.PartyLeader.GetPart<Mutations>()
+                                                                    .MutationList
+                                                                    .Select(m => m.GetMutationEntry())
+                                                                    .Where(m => !myMutations.Contains(m))
+                                                                    .ToList()
+                                                                    .Shuffle(Random);
+                    } else {
+                        possibleMutations = mutations.GetMutatePool()
                                                      .Shuffle(Random);
+                    }
                     if (!ParentObject.IsCombatObject()) {
                         // don't offer combat mutations to NoCombat companions
                         possibleMutations = possibleMutations.Where(m => !CombatMutations.Contains(m.DisplayName))
@@ -141,10 +165,11 @@ namespace XRL.World.Parts {
                     }
                     var valuableMutations = possibleMutations.Where(m => m.Cost > 1);
                     var cheapMutations = possibleMutations.Where(m => m.Cost <= 1);
-                    const int choiceCount = 3;
+                    const int baseChoiceCount = 3;
+                    var choiceCount = isFollower ? 1 : baseChoiceCount;
                     var choices = new List<BaseMutation>(choiceCount);
                     var strings = new List<string>(choiceCount);
-                    var newPartIndex = ParentObject.IsChimera() ? Random.Next(choiceCount) : -1;
+                    var newPartIndex = ParentObject.IsChimera() ? Random.Next(baseChoiceCount) : -1;
                     // only offer valuable mutations if possible, but backfill with cheap ones
                     foreach (var mutationType in valuableMutations.Concat(cheapMutations)) {
                         var mutation = mutationType.CreateInstance();
@@ -157,14 +182,16 @@ namespace XRL.World.Parts {
                         }
                     }
                     if (choices.Count == 0) {
-                        WantNewMutations = false;
-                        NewMutationSavings = 0;
-                        // spend our points if we can
-                        SpendMP();
+                        if (!isFollower) {
+                            WantNewMutations = false;
+                            NewMutationSavings = 0;
+                            // spend our points if we can
+                            SpendMP();
+                        }
                         return;
                     }
 
-                    var choice = -1;
+                    var choice = isFollower ? 0 : -1;
                     while (-1 == choice) {
                         choice = Popup.ShowOptionList(Options: strings.ToArray(),
                                                       Spacing: 1,
@@ -246,9 +273,25 @@ namespace XRL.World.Parts {
                     keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
                 }
             }
+            var newMutationIndex = strings.Count;
             {
                 var prefix = ParentObject.GetPart<Mutations>().GetMutatePool().Count == 0 ? "*" : WantNewMutations ? "+" : "-";
                 strings.Add(prefix + " Acquire new mutations");
+                keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
+            }
+            var newFollowerMutationIndex = -1;
+            var followers = Utility.CollectFollowersOf(ParentObject);
+            if (followers.Any()) {
+                newFollowerMutationIndex = strings.Count;
+                var anyMutationsToGain = false;
+                foreach (var follower in followers) {
+                    if (ParentObject.GetPart<Mutations>().MutationList.Any(m => !follower.GetPart<Mutations>().MutationList.Contains(m))) {
+                        anyMutationsToGain = true;
+                        break;
+                    }
+                }
+                var prefix = !anyMutationsToGain ? "*" : FollowersWantNewMutations ? "+" : "-";
+                strings.Add(prefix + " Acquire new follower mutations");
                 keys.Add(keys.Count >= 26 ? ' ' : (char)('a' + keys.Count));
             }
 
@@ -258,20 +301,35 @@ namespace XRL.World.Parts {
                                                 Intro: "What mutations should " + ParentObject.the + ParentObject.ShortDisplayName + " advance?",
                                                 AllowEscape: true);
                 if (index < 0) {
-                    if (FocusingMutations.Count == 0 && !WantNewMutations) {
+                    if (FocusingMutations.Count == 0 && !WantNewMutations && !FollowersWantNewMutations) {
                         // don't bother listening if there's nothing to hear
                         ParentObject.RemovePart<CleverGirl_AIManageMutations>();
+                        foreach (var follower in Utility.CollectFollowersOf(ParentObject)) {
+                            follower.RemovePart<CleverGirl_AIManageMutations>();
+                        }
                     } else {
                         // spend any MP we have if relevant
                         SpendMP();
+                        foreach (var follower in Utility.CollectFollowersOf(ParentObject)) {
+                            var part = follower.RequirePart<CleverGirl_AIManageMutations>();
+                            part.WantNewMutations = FollowersWantNewMutations;
+                            part.FocusingMutations = FocusingMutations;
+                            part.SpendMP();
+                        }
                     }
                     return changed;
                 }
-                if (keys.Count - 1 == index) {
+                if (newMutationIndex == index) {
                     if (strings[index][0] != '*') {
                         changed = true;
                         WantNewMutations = !WantNewMutations;
                         strings[index] = (WantNewMutations ? '+' : '-') + strings[index].Substring(1);
+                    }
+                } else if (newFollowerMutationIndex == index) {
+                    if (strings[index][0] != '*') {
+                        changed = true;
+                        FollowersWantNewMutations = !FollowersWantNewMutations;
+                        strings[index] = (FollowersWantNewMutations ? '+' : '-') + strings[index].Substring(1);
                     }
                 } else if (strings[index][0] == '*') {
                     // ignore

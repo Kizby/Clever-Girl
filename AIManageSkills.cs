@@ -13,6 +13,7 @@ namespace XRL.World.Parts {
             Display = "manage s{{inventoryhotkey|k}}ills",
             Command = "CleverGirl_ManageSkills",
             Key = 'k',
+            Valid = E => E.Object.PartyLeader == The.Player,
         };
         public static string PROPERTY => "CleverGirl_AIManageSkills";
         public static string LEARNINGSKILLS_PROPERTY => PROPERTY + "_LearningSkills";
@@ -185,9 +186,17 @@ namespace XRL.World.Parts {
                     if (LearningSkills.Count == 0) {
                         // don't bother listening if there's nothing to hear
                         ParentObject.RemovePart<CleverGirl_AIManageSkills>();
+                        foreach (var follower in Utility.CollectFollowersOf(ParentObject)) {
+                            follower.RemovePart<CleverGirl_AIManageSkills>();
+                        }
                     } else {
                         // spend any skill points we have saved up
                         SpendSP();
+                        foreach (var follower in Utility.CollectFollowersOf(ParentObject)) {
+                            var part = follower.RequirePart<CleverGirl_AIManageSkills>();
+                            part.LearningSkills = LearningSkills;
+                            part.SpendSP();
+                        }
                     }
                     return changed;
                 }

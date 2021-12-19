@@ -12,6 +12,7 @@ namespace XRL.World.Parts {
             Display = "manage att{{inventoryhotkey|r}}ibutes",
             Command = "CleverGirl_ManageAttributes",
             Key = 'r',
+            Valid = E => E.Object.PartyLeader == The.Player,
         };
         public static string PROPERTY => "CleverGirl_AIManageAttributes";
         public static string HONINGATTRIBUTES_PROPERTY => PROPERTY + "_HoningAttributes";
@@ -101,9 +102,17 @@ namespace XRL.World.Parts {
                     if (HoningAttributes.Count == 0) {
                         // don't bother listening if there's nothing to hear
                         ParentObject.RemovePart<CleverGirl_AIManageAttributes>();
+                        foreach (var follower in Utility.CollectFollowersOf(ParentObject)) {
+                            follower.RemovePart<CleverGirl_AIManageAttributes>();
+                        }
                     } else {
                         // spend any ability points we have saved up
                         SpendAP();
+                        foreach (var follower in Utility.CollectFollowersOf(ParentObject)) {
+                            var part = follower.RequirePart<CleverGirl_AIManageAttributes>();
+                            part.HoningAttributes = HoningAttributes;
+                            part.SpendAP();
+                        }
                     }
                     return changed;
                 }
