@@ -1,6 +1,7 @@
 namespace XRL.World.Parts {
     using HarmonyLib;
     using System;
+    using System.Linq;
     using System.Collections.Generic;
 
     public class CleverGirl_INoSavePart : IPart { }
@@ -20,6 +21,26 @@ namespace XRL.World.Parts {
                 if (cachedParts != null) {
                     __instance.PartsList.AddRange(cachedParts);
                     cachedParts = null;
+                }
+            }
+        }
+
+        // attach all the parts we didn't save based on whether they have their corresponding property
+        [HarmonyPatch(typeof(GameObject), "Load", new Type[] { typeof(SerializationReader) })]
+        public static class GameObject_Load_Patch {
+            private static List<Type> classes;
+            public static void Postfix(GameObject __instance) {
+                if (classes == null) {
+                    classes = AppDomain.CurrentDomain.GetAssemblies()
+                                .SelectMany(x => x.GetTypes())
+                                .Where(x => typeof(CleverGirl_INoSavePart).IsAssignableFrom(x) && !x.IsInterface && !x.IsAbstract)
+                                .ToList();
+                }
+                foreach (var clazz in classes) {
+                    string prop = clazz.GetProperty("PROPERTY")?.GetValue(null) as string ?? "";
+                    if (prop != "" && __instance.HasProperty(prop)) {
+                        _ = __instance.AddPart(Activator.CreateInstance(clazz) as IPart);
+                    }
                 }
             }
         }

@@ -9,7 +9,7 @@ namespace XRL.World.Parts.CleverGirl {
     // disable smart use if we might be interfacing companions
     [HarmonyPatch(typeof(CyberneticsTerminal2), "HandleEvent", new Type[] { typeof(CanSmartUseEvent) })]
     public static class CyberneticsTerminal2_HandleEvent_CanSmartUseEvent_Patch {
-        static void Postfix(CanSmartUseEvent E, ref bool __result) {
+        public static void Postfix(CanSmartUseEvent E, ref bool __result) {
             __result = __result || Utility.CollectNearbyCompanions(E.Actor).Any(c => c.IsTrueKin());
         }
     }
@@ -24,7 +24,7 @@ namespace XRL.World.Parts.CleverGirl {
             Key = 'c',
             Valid = E => Utility.CollectNearbyCompanions(E.Actor).Any(c => c.IsTrueKin()),
         };
-        static void Postfix(GetInventoryActionsEvent E) {
+        public static void Postfix(GetInventoryActionsEvent E) {
             if (ACTION.Valid(E)) {
                 _ = E.AddAction(ACTION.Name, ACTION.Display, ACTION.Command, Key: ACTION.Key, FireOnActor: true);
             }
@@ -34,7 +34,7 @@ namespace XRL.World.Parts.CleverGirl {
     // include player inventory in collection of possible implants and credits
     [HarmonyPatch(typeof(CyberneticsTerminal), "set_currentScreen")]
     public static class CyberneticsTerminal_set_currentScreen_Patch {
-        static void Postfix(CyberneticsTerminal __instance) {
+        public static void Postfix(CyberneticsTerminal __instance) {
             if (__instance.obj == The.Player) {
                 return;
             }
@@ -55,7 +55,7 @@ namespace XRL.World.Parts.CleverGirl {
     // put unimplanted cybernetics in the player's inventory
     [HarmonyPatch(typeof(CyberneticsScreenRemove), "Activate")]
     public static class CyberneticsScreenRemove_Activate_Patch {
-        static void Postfix(CyberneticsScreenRemove __instance) {
+        public static void Postfix(CyberneticsScreenRemove __instance) {
             if (__instance.terminal.obj == The.Player || The.Player.Inventory == null) {
                 return;
             }
