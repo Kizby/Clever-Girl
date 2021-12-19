@@ -1,16 +1,13 @@
 namespace XRL.World.Parts {
     using System;
     using System.Collections.Generic;
-    using System.Xml;
-    using System.Xml.Schema;
-    using System.Xml.Serialization;
     using XRL.UI;
     using XRL.World.Capabilities;
     using XRL.World.CleverGirl;
     using XRL.World.Parts.CleverGirl;
 
     [Serializable]
-    public class CleverGirl_EventListener : CleverGirl_INoSavePart, IXmlSerializable {
+    public class CleverGirl_EventListener : CleverGirl_INoSavePart {
         public bool RestingUntilPartyHealed;
         public override bool WantEvent(int ID, int cascade) =>
             base.WantEvent(ID, cascade) ||
@@ -126,20 +123,6 @@ namespace XRL.World.Parts {
                             Key: action.Key,
                             FireOnActor: true);
             return true;
-        }
-
-        /// <summary>
-        /// XMLSerialization for compatibility with Armithaig's Recur mod
-        /// </summary>
-        public XmlSchema GetSchema() => null;
-
-        /// <summary>
-        /// no actual state to write beyond the existence of this part
-        /// </summary>
-        /// <param name="writer"></param>
-        public void WriteXml(XmlWriter writer) { }
-        public void ReadXml(XmlReader reader) {
-            reader.Skip();
         }
     }
 }

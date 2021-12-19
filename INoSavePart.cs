@@ -6,6 +6,7 @@ namespace XRL.World.Parts {
     public class CleverGirl_INoSavePart : IPart { }
 
     namespace CleverGirl {
+        // hide any INoSaveParts so GameObject doesn't try to save them; restore after save
         [HarmonyPatch(typeof(GameObject), "Save", new Type[] { typeof(SerializationWriter) })]
         public static class GameObject_Save_Patch {
             private static List<CleverGirl_INoSavePart> cachedParts;

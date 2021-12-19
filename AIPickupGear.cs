@@ -2,15 +2,12 @@ namespace XRL.World.Parts {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Xml;
-    using System.Xml.Schema;
-    using System.Xml.Serialization;
     using XRL.World.AI.GoalHandlers;
     using Qud.API;
     using XRL.World.CleverGirl;
 
     [Serializable]
-    public class CleverGirl_AIPickupGear : CleverGirl_INoSavePart, IXmlSerializable {
+    public class CleverGirl_AIPickupGear : CleverGirl_INoSavePart {
         public static string PROPERTY => "CleverGirl_AIPickupGear";
         public override void Register(GameObject Object) {
             _ = Object.SetIntProperty(PROPERTY, 1);
@@ -165,20 +162,6 @@ namespace XRL.World.Parts {
             ParentObject.pBrain.Think("I want that " + item.DisplayNameOnlyStripped);
             _ = ParentObject.pBrain.PushGoal(new CleverGirl_GoPickupGear(item));
             _ = ParentObject.pBrain.PushGoal(new MoveTo(item.CurrentCell));
-        }
-
-        /// <summary>
-        /// XMLSerialization for compatibility with Armithaig's Recur mod
-        /// </summary>
-        public XmlSchema GetSchema() => null;
-
-        /// <summary>
-        /// no actual state to write beyond the existence of this part
-        /// </summary>
-        /// <param name="writer"></param>
-        public void WriteXml(XmlWriter writer) { }
-        public void ReadXml(XmlReader reader) {
-            reader.Skip();
         }
 
         /// <summary>

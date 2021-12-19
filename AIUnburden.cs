@@ -3,12 +3,9 @@ namespace XRL.World.Parts {
     using XRL.World.CleverGirl;
     using Qud.API;
     using System.Linq;
-    using System.Xml;
-    using System.Xml.Schema;
-    using System.Xml.Serialization;
 
     [Serializable]
-    public class CleverGirl_AIUnburden : CleverGirl_INoSavePart, IXmlSerializable {
+    public class CleverGirl_AIUnburden : CleverGirl_INoSavePart {
 
         public static string PROPERTY => "CleverGirl_AIUnburden";
         public override void Register(GameObject Object) {
@@ -56,20 +53,6 @@ namespace XRL.World.Parts {
                     break;
                 }
             }
-        }
-
-        /// <summary>
-        /// XMLSerialization for compatibility with Armithaig's Recur mod
-        /// </summary>
-        public XmlSchema GetSchema() => null;
-
-        /// <summary>
-        /// no actual state to write beyond the existence of this part
-        /// </summary>
-        /// <param name="writer"></param>
-        public void WriteXml(XmlWriter writer) { }
-        public void ReadXml(XmlReader reader) {
-            reader.Skip();
         }
     }
 }

@@ -2,14 +2,11 @@ namespace XRL.World.Parts {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Xml;
-    using System.Xml.Schema;
-    using System.Xml.Serialization;
     using XRL.UI;
     using XRL.World.CleverGirl;
 
     [Serializable]
-    public class CleverGirl_AIManageAttributes : CleverGirl_INoSavePart, IXmlSerializable {
+    public class CleverGirl_AIManageAttributes : CleverGirl_INoSavePart {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Attributes",
             Display = "manage att{{inventoryhotkey|r}}ibutes",
@@ -128,31 +125,6 @@ namespace XRL.World.Parts {
                     changed = true;
                 }
             }
-        }
-
-        /// <summary>
-        /// XMLSerialization for compatibility with Armithaig's Recur mod
-        /// </summary>
-        public XmlSchema GetSchema() => null;
-
-        public void WriteXml(XmlWriter writer) {
-            writer.WriteStartElement("HoningAttributes");
-            foreach (string attr in HoningAttributes) {
-                writer.WriteElementString("name", attr);
-            }
-            writer.WriteEndElement();
-        }
-
-        public void ReadXml(XmlReader reader) {
-            reader.ReadStartElement();
-
-            reader.ReadStartElement("HoningAttributes");
-            while (reader.MoveToContent() != XmlNodeType.EndElement) {
-                HoningAttributes.Add(reader.ReadElementContentAsString("name", ""));
-            }
-            reader.ReadEndElement();
-
-            reader.ReadEndElement();
         }
     }
 }

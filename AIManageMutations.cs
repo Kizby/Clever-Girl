@@ -3,16 +3,13 @@ namespace XRL.World.Parts {
     using HarmonyLib;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Xml;
-    using System.Xml.Schema;
-    using System.Xml.Serialization;
     using XRL.UI;
     using XRL.World.CleverGirl;
     using XRL.World.Parts.Mutation;
 
     [Serializable]
     [HarmonyPatch]
-    public class CleverGirl_AIManageMutations : CleverGirl_INoSavePart, IXmlSerializable {
+    public class CleverGirl_AIManageMutations : CleverGirl_INoSavePart {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Mutations",
             Display = "manage mu{{inventoryhotkey|t}}ations",
@@ -296,43 +293,6 @@ namespace XRL.World.Parts {
                     changed = true;
                 }
             }
-        }
-
-        /// <summary>
-        /// XMLSerialization for compatibility with Armithaig's Recur mod
-        /// </summary>
-        public XmlSchema GetSchema() => null;
-
-        public void WriteXml(XmlWriter writer) {
-            writer.WriteStartElement("FocusingMutations");
-            foreach (var mutation in FocusingMutations) {
-                writer.WriteElementString("name", mutation);
-            }
-            writer.WriteEndElement();
-            writer.WriteElementString("WantNewMutations", WantNewMutations ? "yes" : "no");
-            if (WantNewMutations) {
-                writer.WriteElementString("NewMutationSavings", NewMutationSavings.ToString());
-            }
-        }
-
-        public void ReadXml(XmlReader reader) {
-            reader.ReadStartElement();
-
-            reader.ReadStartElement("FocusingMutations");
-            while (reader.MoveToContent() != XmlNodeType.EndElement) {
-                FocusingMutations.Add(reader.ReadElementContentAsString("name", ""));
-            }
-            reader.ReadEndElement();
-
-            _ = reader.MoveToContent();
-            WantNewMutations = reader.ReadElementContentAsString("WantNewMutations", "") == "yes";
-
-            if (WantNewMutations) {
-                _ = reader.MoveToContent();
-                NewMutationSavings = int.Parse(reader.ReadElementContentAsString("NewMutationSavings", ""));
-            }
-
-            reader.ReadEndElement();
         }
     }
 }

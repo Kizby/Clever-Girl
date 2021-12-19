@@ -2,15 +2,12 @@ namespace XRL.World.Parts {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Xml;
-    using System.Xml.Schema;
-    using System.Xml.Serialization;
     using XRL.UI;
     using XRL.World.CleverGirl;
     using XRL.World.Skills;
 
     [Serializable]
-    public class CleverGirl_AIManageSkills : CleverGirl_INoSavePart, IXmlSerializable {
+    public class CleverGirl_AIManageSkills : CleverGirl_INoSavePart {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Skills",
             Display = "manage s{{inventoryhotkey|k}}ills",
@@ -214,31 +211,6 @@ namespace XRL.World.Parts {
                     changed = true;
                 }
             }
-        }
-
-        /// <summary>
-        /// XMLSerialization for compatibility with Armithaig's Recur mod
-        /// </summary>
-        public XmlSchema GetSchema() => null;
-
-        public void WriteXml(XmlWriter writer) {
-            writer.WriteStartElement("LearningSkills");
-            foreach (var skill in LearningSkills) {
-                writer.WriteElementString("name", skill);
-            }
-            writer.WriteEndElement();
-        }
-
-        public void ReadXml(XmlReader reader) {
-            reader.ReadStartElement();
-
-            reader.ReadStartElement("LearningSkills");
-            while (reader.MoveToContent() != XmlNodeType.EndElement) {
-                LearningSkills.Add(reader.ReadElementContentAsString("name", ""));
-            }
-            reader.ReadEndElement();
-
-            reader.ReadEndElement();
         }
     }
 }
