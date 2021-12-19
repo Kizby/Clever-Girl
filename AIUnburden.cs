@@ -8,7 +8,16 @@ namespace XRL.World.Parts {
     using System.Xml.Serialization;
 
     [Serializable]
-    public class CleverGirl_AIUnburden : IPart, IXmlSerializable {
+    public class CleverGirl_AIUnburden : CleverGirl_INoSavePart, IXmlSerializable {
+
+        public static string PROPERTY => "CleverGirl_AIUnburden";
+        public override void Register(GameObject Object) {
+            _ = Object.SetIntProperty(PROPERTY, 1);
+        }
+        public override void Remove() {
+            ParentObject.RemoveIntProperty(PROPERTY);
+        }
+
         public override bool WantTurnTick() => true;
 
         public override void TurnTick(long TurnNumber) {

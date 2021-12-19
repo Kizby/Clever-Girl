@@ -12,18 +12,49 @@ namespace XRL.World.Parts {
 
     [Serializable]
     [HarmonyPatch]
-    public class CleverGirl_AIManageMutations : IPart, IXmlSerializable {
+    public class CleverGirl_AIManageMutations : CleverGirl_INoSavePart, IXmlSerializable {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Mutations",
             Display = "manage mu{{inventoryhotkey|t}}ations",
             Command = "CleverGirl_ManageMutations",
             Key = 't',
         };
+        public static string PROPERTY => "CleverGirl_AIManageMutations";
+        public static string FOCUSINGMUTATIONS_PROPERTY => PROPERTY + "_FocusingMutations";
+        public static string WANTNEWMUTATIONS_PROPERTY => PROPERTY + "_WantNewMutations";
+        public static string NEWMUTATIONSAVINGS_PROPERTY => PROPERTY + "_NewMutationSavings";
 
-        public List<string> FocusingMutations = new List<string>();
+        public override void Register(GameObject Object) {
+            _ = Object.SetIntProperty(PROPERTY, 1);
+            if (!Object.HasStringProperty(FOCUSINGMUTATIONS_PROPERTY)) {
+                Object.SetStringProperty(FOCUSINGMUTATIONS_PROPERTY, "");
+            }
+            if (!Object.HasIntProperty(WANTNEWMUTATIONS_PROPERTY)) {
+                _ = Object.SetIntProperty(WANTNEWMUTATIONS_PROPERTY, 0);
+            }
+            if (!Object.HasIntProperty(NEWMUTATIONSAVINGS_PROPERTY)) {
+                _ = Object.SetIntProperty(NEWMUTATIONSAVINGS_PROPERTY, 0);
+            }
+        }
+        public override void Remove() {
+            ParentObject.RemoveIntProperty(PROPERTY);
+            ParentObject.RemoveStringProperty(FOCUSINGMUTATIONS_PROPERTY);
+            ParentObject.RemoveIntProperty(WANTNEWMUTATIONS_PROPERTY);
+            ParentObject.RemoveIntProperty(NEWMUTATIONSAVINGS_PROPERTY);
+        }
+        public List<string> FocusingMutations {
+            get => ParentObject.GetStringProperty(FOCUSINGMUTATIONS_PROPERTY).Split(',').Where(s => !s.IsNullOrEmpty()).ToList();
+            set => ParentObject.SetStringProperty(FOCUSINGMUTATIONS_PROPERTY, string.Join(",", value));
+        }
 
-        public bool WantNewMutations;
-        public int NewMutationSavings;
+        public bool WantNewMutations {
+            get => ParentObject.GetIntProperty(WANTNEWMUTATIONS_PROPERTY) == 1;
+            set => ParentObject.SetIntProperty(WANTNEWMUTATIONS_PROPERTY, value ? 1 : 0);
+        }
+        public int NewMutationSavings {
+            get => ParentObject.GetIntProperty(NEWMUTATIONSAVINGS_PROPERTY);
+            set => ParentObject.SetIntProperty(NEWMUTATIONSAVINGS_PROPERTY, value);
+        }
 
         public static HashSet<string> CombatMutations = new HashSet<string>{
             "Corrosive Gas Generation",
@@ -249,12 +280,18 @@ namespace XRL.World.Parts {
                     // ignore
                 } else if (strings[index][0] == '-') {
                     // start leveling this mutation
-                    FocusingMutations.Add(mutations[index]);
+                    var working = FocusingMutations;
+                    working.Add(mutations[index]);
+                    FocusingMutations = working;
+
                     strings[index] = '+' + strings[index].Substring(1);
                     changed = true;
                 } else if (strings[index][0] == '+') {
                     // stop leveling this mutation
-                    _ = FocusingMutations.Remove(mutations[index]);
+                    var working = FocusingMutations;
+                    _ = working.Remove(mutations[index]);
+                    FocusingMutations = working;
+
                     strings[index] = '-' + strings[index].Substring(1);
                     changed = true;
                 }

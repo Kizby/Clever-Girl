@@ -10,7 +10,14 @@ namespace XRL.World.Parts {
     using XRL.World.CleverGirl;
 
     [Serializable]
-    public class CleverGirl_AIPickupGear : IPart, IXmlSerializable {
+    public class CleverGirl_AIPickupGear : CleverGirl_INoSavePart, IXmlSerializable {
+        public static string PROPERTY => "CleverGirl_AIPickupGear";
+        public override void Register(GameObject Object) {
+            _ = Object.SetIntProperty(PROPERTY, 1);
+        }
+        public override void Remove() {
+            ParentObject.RemoveIntProperty(PROPERTY);
+        }
         public static readonly Utility.InventoryAction ENABLE = new Utility.InventoryAction {
             Name = "Clever Girl - Enable Gear Pickup",
             Display = "enable gear {{inventoryhotkey|p}}ickup",

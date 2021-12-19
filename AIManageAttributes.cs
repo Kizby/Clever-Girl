@@ -1,6 +1,7 @@
 namespace XRL.World.Parts {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Xml;
     using System.Xml.Schema;
     using System.Xml.Serialization;
@@ -8,15 +9,29 @@ namespace XRL.World.Parts {
     using XRL.World.CleverGirl;
 
     [Serializable]
-    public class CleverGirl_AIManageAttributes : IPart, IXmlSerializable {
+    public class CleverGirl_AIManageAttributes : CleverGirl_INoSavePart, IXmlSerializable {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Attributes",
             Display = "manage att{{inventoryhotkey|r}}ibutes",
             Command = "CleverGirl_ManageAttributes",
             Key = 'r',
         };
-
-        public List<string> HoningAttributes = new List<string>();
+        public static string PROPERTY => "CleverGirl_AIManageAttributes";
+        public static string HONINGATTRIBUTES_PROPERTY => PROPERTY + "_HoningAttributes";
+        public override void Register(GameObject Object) {
+            _ = Object.SetIntProperty(PROPERTY, 1);
+            if (!Object.HasStringProperty(HONINGATTRIBUTES_PROPERTY)) {
+                Object.SetStringProperty(HONINGATTRIBUTES_PROPERTY, "");
+            }
+        }
+        public override void Remove() {
+            ParentObject.RemoveIntProperty(PROPERTY);
+            ParentObject.RemoveStringProperty(HONINGATTRIBUTES_PROPERTY);
+        }
+        public List<string> HoningAttributes {
+            get => ParentObject.GetStringProperty(HONINGATTRIBUTES_PROPERTY).Split(',').Where(s => !s.IsNullOrEmpty()).ToList();
+            set => ParentObject.SetStringProperty(HONINGATTRIBUTES_PROPERTY, string.Join(",", value));
+        }
 
         public override bool WantEvent(int ID, int cascade) => ID == StatChangeEvent.ID;
 
@@ -97,12 +112,18 @@ namespace XRL.World.Parts {
                 }
                 if (strings[index][0] == '-') {
                     // start honing this attribute
-                    HoningAttributes.Add(attributes[index]);
+                    var working = HoningAttributes;
+                    working.Add(attributes[index]);
+                    HoningAttributes = working;
+
                     strings[index] = '+' + strings[index].Substring(1);
                     changed = true;
                 } else if (strings[index][0] == '+') {
                     // stop honing this attribute
-                    _ = HoningAttributes.Remove(attributes[index]);
+                    var working = HoningAttributes;
+                    _ = working.Remove(attributes[index]);
+                    HoningAttributes = working;
+
                     strings[index] = '-' + strings[index].Substring(1);
                     changed = true;
                 }

@@ -10,13 +10,29 @@ namespace XRL.World.Parts {
     using XRL.World.Skills;
 
     [Serializable]
-    public class CleverGirl_AIManageSkills : IPart, IXmlSerializable {
+    public class CleverGirl_AIManageSkills : CleverGirl_INoSavePart, IXmlSerializable {
         public static readonly Utility.InventoryAction ACTION = new Utility.InventoryAction {
             Name = "Clever Girl - Manage Skills",
             Display = "manage s{{inventoryhotkey|k}}ills",
             Command = "CleverGirl_ManageSkills",
             Key = 'k',
         };
+        public static string PROPERTY => "CleverGirl_AIManageSkills";
+        public static string LEARNINGSKILLS_PROPERTY => PROPERTY + "_LearningSkills";
+        public override void Register(GameObject Object) {
+            _ = Object.SetIntProperty(PROPERTY, 1);
+            if (!Object.HasStringProperty(LEARNINGSKILLS_PROPERTY)) {
+                Object.SetStringProperty(LEARNINGSKILLS_PROPERTY, "");
+            }
+        }
+        public override void Remove() {
+            ParentObject.RemoveIntProperty(PROPERTY);
+            ParentObject.RemoveStringProperty(LEARNINGSKILLS_PROPERTY);
+        }
+        public List<string> LearningSkills {
+            get => ParentObject.GetStringProperty(LEARNINGSKILLS_PROPERTY).Split(',').Where(s => !s.IsNullOrEmpty()).ToList();
+            set => ParentObject.SetStringProperty(LEARNINGSKILLS_PROPERTY, string.Join(",", value));
+        }
 
         /// <summary>
         /// these skills don't make sense for companions
@@ -47,8 +63,6 @@ namespace XRL.World.Parts {
             "Deft Throwing",
             "Charge",
         };
-
-        public List<string> LearningSkills = new List<string>();
 
         public override bool WantEvent(int ID, int cascade) => ID == StatChangeEvent.ID;
 
@@ -184,12 +198,18 @@ namespace XRL.World.Parts {
                     // ignore
                 } else if (strings[index][0] == '-') {
                     // start learning this skill
-                    LearningSkills.Add(skills[index]);
+                    var working = LearningSkills;
+                    working.Add(skills[index]);
+                    LearningSkills = working;
+
                     strings[index] = '+' + strings[index].Substring(1);
                     changed = true;
                 } else if (strings[index][0] == '+') {
                     // stop learning this skill
-                    _ = LearningSkills.Remove(skills[index]);
+                    var working = LearningSkills;
+                    _ = working.Remove(skills[index]);
+                    LearningSkills = working;
+
                     strings[index] = '-' + strings[index].Substring(1);
                     changed = true;
                 }
