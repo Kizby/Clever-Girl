@@ -37,7 +37,7 @@ namespace XRL.World.Parts {
             Valid = e => e.Object.PartyLeader == The.Player && Utility.CollectFollowersOf(e.Object).Any(obj => !obj.HasPart(nameof(CleverGirl_AIPickupGear))),
         };
         public static readonly Utility.InventoryAction FOLLOWER_DISABLE = new Utility.InventoryAction {
-            Name = "Clever Girl - Disable Gear Pickup",
+            Name = "Clever Girl - Disable Follower Gear Pickup",
             Display = "disable follower gear {{inventoryhotkey|p}}ickup",
             Command = "CleverGirl_DisableFollowerGearPickup",
             Key = 'P',
