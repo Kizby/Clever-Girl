@@ -749,7 +749,8 @@ namespace XRL.World.CleverGirl {
                     bool alreadyDisgusting = existingAdjectives?.AdjectiveList.Contains("disgusting") == true;
                     (existingAdjectives ?? gameObject.RequirePart<DisplayNameAdjectives>()).RequireAdjective("disgusting");
 
-                    var result = gameObject.one(NoStacker: true);
+                    // fifth parameter renamed from NoStacker to Single in 2.0.203.17, so can't use named parameter until that's mainline
+                    var result = gameObject.one(/*Cutoff:*/ int.MaxValue, /*Base:*/ null, /*Context:*/ null, /*AsIfKnown:*/ false, /*Single:*/ true);
 
                     if (existingAdjectives == null) {
                         gameObject.RemovePart<DisplayNameAdjectives>();
@@ -793,7 +794,9 @@ namespace XRL.World.CleverGirl {
                     Popup.Show(Leader.It + Leader.GetVerb("convince") + " " + Companion.one() + " to eat " + DisgustingName(Item) + Message);
                 } else {
                     string Adverb = Gross ? " begrudgingly" : " hungrily";
-                    Popup.Show(Companion.One() + Adverb + Companion.GetVerb("eat") + " " + Item.one(NoStacker: true) + Message);
+                    // fifth parameter renamed from NoStacker to Single in 2.0.203.17, so can't use named parameter until that's mainline
+                    var one = Item.one(/*Cutoff:*/ int.MaxValue, /*Base:*/ null, /*Context:*/ null, /*AsIfKnown:*/ false, /*Single:*/ true);
+                    Popup.Show(Companion.One() + Adverb + Companion.GetVerb("eat") + " " + one + Message);
                 }
                 return true;
             };
