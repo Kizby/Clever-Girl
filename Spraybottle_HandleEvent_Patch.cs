@@ -28,7 +28,7 @@ namespace XRL.World.Parts.CleverGirl {
                 if (!Skipping) {
                     yield return inst;
                 }
-                if (inst.Is(OpCodes.Call, AccessTools.Method(typeof(PickItem), "ShowPicker", new Type[] { typeof(List<GameObject>), typeof(string), typeof(PickItem.PickItemDialogStyle), typeof(GameObject), typeof(GameObject), typeof(Cell), typeof(string), typeof(bool), typeof(Func<List<GameObject>>), typeof(bool), typeof(bool) }))) {
+                if (inst.Is(OpCodes.Call, AccessTools.Method(typeof(PickItem), "ShowPicker", new Type[] { typeof(List<GameObject>), typeof(string), typeof(PickItem.PickItemDialogStyle), typeof(GameObject), typeof(GameObject), typeof(Cell), typeof(string), typeof(bool), typeof(Func<List<GameObject>>), typeof(bool), typeof(bool), typeof(bool) }))) {
                     // use PickObject's return value instead of ShowPicker's
                     Skipping = false;
                 }
