@@ -6,11 +6,16 @@ namespace XRL.World.Parts.CleverGirl {
     using XRL.UI;
     using XRL.World.CleverGirl;
 
-    // disable smart use if we might be interfacing companions
-    [HarmonyPatch(typeof(CyberneticsTerminal2), "HandleEvent", new Type[] { typeof(CanSmartUseEvent) })]
-    public static class CyberneticsTerminal2_HandleEvent_CanSmartUseEvent_Patch {
-        public static void Postfix(CanSmartUseEvent E, ref bool __result) {
-            __result = __result || Utility.CollectNearbyCompanions(E.Actor).Any(c => c.IsTrueKin());
+    // adjust smart use if we might be interfacing companions
+    [HarmonyPatch(typeof(CyberneticsTerminal2), "HandleEvent", new Type[] { typeof(CommandSmartUseEvent) })]
+    public static class CyberneticsTerminal2_HandleEvent_CommandSmartUseEvent_Patch {
+        public static bool Prefix(CommandSmartUseEvent E, CyberneticsTerminal2 __instance, ref bool __result) {
+            if (Utility.CollectNearbyCompanions(E.Actor).Any(c => c.IsTrueKin())) {
+                // give normal twiddle options instead of directly interfacing player
+                __result = __instance.ParentObject.Twiddle();
+                return false;
+            }
+            return true;
         }
     }
 
