@@ -14,6 +14,8 @@ trim_trailing_whitespace = true
 # Configure language and formatting conventions to match analyzer rules below
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-formatting-conventions
 # https://docs.microsoft.com/en-us/visualstudio/ide/editorconfig-language-conventions
+csharp_new_line_before_else = false
+csharp_new_line_before_open_brace = false
 csharp_using_directive_placement = inside_namespace:warning
 dotnet_code_quality_unused_parameters = non_public:warning
 # Note: SA1516 requires separation between System.* and all others.
