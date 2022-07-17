@@ -133,6 +133,9 @@ namespace XRL.World.Parts {
                 _ = ParentObject.UseEnergy(1000, "Pass");
                 Loading.SetLoadingStatus("Resting until party healed...");
             }
+            if (E.Command == "CleverGirl_CmdCompanionsMenu") {
+                CompanionsTracker.OpenMenu();
+            }
             return true;
         }
 

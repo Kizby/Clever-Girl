@@ -1,3 +1,4 @@
 <commands>
-    <command ID="CleverGirl_CmdWaitUntilPartyHealed" DisplayText="Rest until party healed" Category="Actions"></command>
+    <command ID="CleverGirl_CmdWaitUntilPartyHealed" DisplayText="Rest until party healed" Category="Adventure"></command>
+    <command ID="CleverGirl_CmdCompanionsMenu" DisplayText="Show Companions Menu" Category="Status"></command>
 </commands>
