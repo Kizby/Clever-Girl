@@ -15,11 +15,6 @@ namespace XRL.World.Parts {
             ID == InventoryActionEvent.ID ||
             ID == CommandEvent.ID ||
             ID == GetCookingActionsEvent.ID;
-        public override void Attach() {
-            // manually initialize once we know who the player is
-            CompanionsTracker.InitializeCompanionsList(ParentObject);
-            base.Attach();
-        }
         public override bool HandleEvent(OwnerGetInventoryActionsEvent E) {
             if (E.Actor == ParentObject && E.Object?.IsPlayerLed() == true && !E.Object.IsPlayer()) {
                 if (E.Object.HasPart(typeof(CannotBeInfluenced))) {
