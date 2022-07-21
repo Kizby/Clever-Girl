@@ -5,6 +5,9 @@ namespace XRL.World.CleverGirl {
     using System.Runtime.CompilerServices;
     using System.Text.RegularExpressions;
     using XRL.Rules;
+    using Qud.UI;
+    using XRL.UI;
+    using ConsoleLib.Console;
 
     public static class Utility {
         public static bool debug;
@@ -87,6 +90,67 @@ namespace XRL.World.CleverGirl {
 
         public static IEnumerable<GameObject> CollectFollowersOf(GameObject Leader) {
             return The.ActiveZone.GetObjects().Where(obj => obj.IsLedBy(Leader));
+        }
+
+        public static int ShowTabularPopup(string Title, List<List<string>> Columns, List<int> ColumnWidths = null) {
+            if (ColumnWidths == null) {
+                ColumnWidths = new List<int>();
+                foreach (var column in Columns) {
+                    ColumnWidths.Add(column.Max(row => ColorUtility.LengthExceptFormatting(row)));
+                }
+            } else {
+                for (var i = 0; i < Columns.Count; ++i) {
+                    var maxWidth = Columns[i].Max(row => ColorUtility.LengthExceptFormatting(row));
+                    if (maxWidth < ColumnWidths[i]) {
+                        // shrink columns to actual content when possible
+                        ColumnWidths[i] = maxWidth;
+                    }
+                }
+            }
+            var lines = new string[Columns.Max(c => c.Count)];
+            for (int row = 0; row < lines.Length; ++row) {
+                lines[row] = "{{y|";
+                if (CapabilityManager.AllowKeyboardHotkeys && row < 26) {
+                    lines[row] += "{{W|[" + (char)('a' + row) + "]}} ";
+                }
+                for (int column = 0; column < Columns.Count; ++column) {
+                    if (Columns[column].Count <= row) {
+                        continue;
+                    }
+                    var entry = Columns[column][row];
+                    if (entry.Length == 0) {
+                        continue;
+                    }
+                    var padding = ColumnWidths[column] - ColorUtility.LengthExceptFormatting(entry);
+                    if (padding < 0) {
+                        padding = 0;
+                    }
+                    if (column > 0) {
+                        lines[row] += " | ";
+                    }
+                    lines[row] += entry + new string('\0', padding);
+                }
+                lines[row] += "}}";
+            }
+            var options = new List<QudMenuItem>(lines.Length);
+            for (var i = 0; i < lines.Length; ++i) {
+                var line = lines[i];
+                options.Add(new QudMenuItem() {
+                    text = line,
+                    icon = null,
+                    command = "option:" + i,
+                    hotkey = i < 26 ? "char:" + (char)('a' + i) : "",
+                });
+            }
+            int selected = 0;
+            Popup.WaitNewPopupMessage("", options: options, title: Title, callback: item => {
+                if (item.command == "Cancel") {
+                    selected = -1;
+                } else if (item.command.StartsWith("option:")) {
+                    selected = Convert.ToInt32(item.command.Substring("option:".Length));
+                }
+            });
+            return selected;
         }
 
         public class InventoryAction {

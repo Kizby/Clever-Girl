@@ -7,6 +7,8 @@ namespace XRL.World.CleverGirl {
     using HarmonyLib;
     using System.Reflection;
     using ConsoleLib.Console;
+    using Qud.UI;
+    using System;
 
     public static class CompanionsTracker {
         public static void OpenMenu() {
@@ -36,14 +38,12 @@ namespace XRL.World.CleverGirl {
                 return;
             }
 
-            var indents = new List<int>();
             var names = new List<string>();
             var status = new List<string>();
             var effects = new List<string>();
-            void HarvestFields(IEnumerable<GameObject> Companions, int Indent = 0) {
+            void HarvestFields(IEnumerable<GameObject> Companions, string IndentString = "") {
                 foreach (var companion in Companions) {
-                    indents.Add(Indent);
-                    names.Add(CompanionName(companion));
+                    names.Add(IndentString + CompanionName(companion));
                     if (!companion.IsVisible()) {
                         status.Add((companion.IsAudible(The.Player) ? "{{W|" : "{{O|") + The.Player.DescribeDirectionToward(companion.CurrentCell) + "}}");
                         effects.Add("");
@@ -62,34 +62,19 @@ namespace XRL.World.CleverGirl {
                         effects.Add(effectString);
                     }
                     if (companionMap.TryGetValue(companion, out SortedSet<GameObject> subCompanions)) {
-                        HarvestFields(subCompanions, Indent + 1);
+                        HarvestFields(subCompanions, IndentString + "\0");
                     }
                 }
             }
             HarvestFields(companionMap[The.Player]);
 
-            var lines = new string[names.Count];
-            for (var i = 0; i < lines.Length; ++i) {
-                var line = names[i];
-                for (var j = 0; j < indents[i]; ++j) {
-                    line = " | " + line;
-                }
-                if (status[i].Length > 0) {
-                    line += " | " + status[i];
-                }
-                if (effects[i].Length > 0) {
-                    line += " | " + effects[i];
-                }
-                lines[i] = line;
-                Utility.MaybeLog(line);
-            }
             var selected = 0;
             while (selected != -1) {
-                selected = Popup.ShowOptionList("Companions", lines, AllowEscape: true);
+                selected = Utility.ShowTabularPopup("Companions", new List<List<string>>() { names, status, effects }, new List<int> { 30, 20, 20 });
             }
         }
 
         private static readonly PropertyInfo DisplayNameBaseProperty = AccessTools.Property(typeof(GameObject), "DisplayNameBase");
-        private static string CompanionName(GameObject Companion) => DisplayNameBaseProperty.GetValue(Companion) as string;
+        private static string CompanionName(GameObject Companion) => ColorUtility.ClipToFirstExceptFormatting(DisplayNameBaseProperty.GetValue(Companion) as string, ',');
     }
 }
