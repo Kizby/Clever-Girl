@@ -89,7 +89,7 @@ namespace XRL.World.CleverGirl {
         }
 
         public static IEnumerable<GameObject> CollectFollowersOf(GameObject Leader) {
-            return The.ActiveZone.GetObjects().Where(obj => obj.IsLedBy(Leader));
+            return The.ActiveZone.FindObjects(obj => obj.IsLedBy(Leader));
         }
 
         public static int ShowTabularPopup(string Title, List<List<string>> Columns, List<int> ColumnWidths = null, List<IRenderable> Icons = null, IRenderable IntroIcon = null) {
