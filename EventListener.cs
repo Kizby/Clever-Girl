@@ -129,7 +129,7 @@ namespace XRL.World.Parts {
                 Loading.SetLoadingStatus("Resting until party healed...");
             }
             if (E.Command == "CleverGirl_CmdCompanionsMenu") {
-                CompanionsTracker.OpenMenu();
+                CompanionsMenu.OpenMenu();
             }
             return true;
         }

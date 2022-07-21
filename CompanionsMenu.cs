@@ -1,16 +1,12 @@
 namespace XRL.World.CleverGirl {
-    using System.Linq;
     using System.Collections.Generic;
     using XRL.World;
-    using XRL.UI;
     using XRL.Rules;
     using HarmonyLib;
     using System.Reflection;
     using ConsoleLib.Console;
-    using Qud.UI;
-    using System;
 
-    public static class CompanionsTracker {
+    public static class CompanionsMenu {
         public static void OpenMenu() {
             if (The.Player == null) {
                 // too early?
