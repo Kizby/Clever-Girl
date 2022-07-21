@@ -41,11 +41,13 @@ namespace XRL.World.CleverGirl {
             var names = new List<string>();
             var status = new List<string>();
             var effects = new List<string>();
+            var icons = new List<IRenderable>();
             var companionList = new List<GameObject>();
             void HarvestFields(IEnumerable<GameObject> Companions, string IndentString = "") {
                 foreach (var companion in Companions) {
                     companionList.Add(companion);
                     names.Add(IndentString + CompanionName(companion));
+                    icons.Add(companion.pRender);
                     if (!companion.IsVisible()) {
                         status.Add((companion.IsAudible(The.Player) ? "{{W|" : "{{O|") + The.Player.DescribeDirectionToward(companion.CurrentCell) + "}}");
                         effects.Add("");
@@ -70,7 +72,7 @@ namespace XRL.World.CleverGirl {
             }
             HarvestFields(companionMap[The.Player]);
 
-            var selected = Utility.ShowTabularPopup("Companions", new List<List<string>>() { names, status, effects }, new List<int> { 30, 20, 20 });
+            var selected = Utility.ShowTabularPopup("Companions", new List<List<string>>() { names, status, effects }, new List<int> { 30, 20, 20 }, icons, The.Player.pRender);
             if (selected != -1) {
                 _ = companionList[selected].Twiddle();
             }

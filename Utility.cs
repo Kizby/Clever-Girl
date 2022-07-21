@@ -92,7 +92,7 @@ namespace XRL.World.CleverGirl {
             return The.ActiveZone.GetObjects().Where(obj => obj.IsLedBy(Leader));
         }
 
-        public static int ShowTabularPopup(string Title, List<List<string>> Columns, List<int> ColumnWidths = null) {
+        public static int ShowTabularPopup(string Title, List<List<string>> Columns, List<int> ColumnWidths = null, List<IRenderable> Icons = null, IRenderable IntroIcon = null) {
             if (ColumnWidths == null) {
                 ColumnWidths = new List<int>();
                 foreach (var column in Columns) {
@@ -137,13 +137,13 @@ namespace XRL.World.CleverGirl {
                 var line = lines[i];
                 options.Add(new QudMenuItem() {
                     text = line,
-                    icon = null,
+                    icon = Icons?[i],
                     command = "option:" + i,
                     hotkey = i < 26 ? "char:" + (char)('a' + i) : "",
                 });
             }
             int selected = 0;
-            Popup.WaitNewPopupMessage("", options: options, title: Title, callback: item => {
+            Popup.WaitNewPopupMessage("", options: options, title: Title, contextRender: IntroIcon, callback: item => {
                 if (item.command == "Cancel") {
                     selected = -1;
                 } else if (item.command.StartsWith("option:")) {
