@@ -62,7 +62,7 @@ namespace XRL.World.CleverGirl {
                         effects.Add(effectString);
                     }
                     if (companionMap.TryGetValue(companion, out SortedSet<GameObject> subCompanions)) {
-                        HarvestFields(subCompanions, IndentString + "\0");
+                        HarvestFields(subCompanions, IndentString + "\xFF");
                     }
                 }
             }

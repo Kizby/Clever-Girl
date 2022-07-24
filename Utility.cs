@@ -110,9 +110,6 @@ namespace XRL.World.CleverGirl {
             var lines = new string[Columns.Max(c => c.Count)];
             for (int row = 0; row < lines.Length; ++row) {
                 lines[row] = "{{y|";
-                if (CapabilityManager.AllowKeyboardHotkeys && row < 26) {
-                    lines[row] += "{{W|[" + (char)('a' + row) + "]}} ";
-                }
                 for (int column = 0; column < Columns.Count; ++column) {
                     if (Columns[column].Count <= row) {
                         continue;
@@ -128,29 +125,15 @@ namespace XRL.World.CleverGirl {
                     if (column > 0) {
                         lines[row] += " | ";
                     }
-                    lines[row] += entry + new string('\0', padding);
+                    lines[row] += entry + new string('\xFF', padding);
                 }
                 lines[row] += "}}";
             }
-            var options = new List<QudMenuItem>(lines.Length);
-            for (var i = 0; i < lines.Length; ++i) {
-                var line = lines[i];
-                options.Add(new QudMenuItem() {
-                    text = line,
-                    icon = Icons?[i],
-                    command = "option:" + i,
-                    hotkey = i < 26 ? "char:" + (char)('a' + i) : "",
-                });
+            var hotkeys = new char[lines.Length];
+            for (var i = 0; i < hotkeys.Length; ++i) {
+                hotkeys[i] = i < 26 ? (char)('a' + i) : ' ';
             }
-            int selected = 0;
-            Popup.WaitNewPopupMessage("", options: options, title: Title, contextRender: IntroIcon, callback: item => {
-                if (item.command == "Cancel") {
-                    selected = -1;
-                } else if (item.command.StartsWith("option:")) {
-                    selected = Convert.ToInt32(item.command.Substring("option:".Length));
-                }
-            });
-            return selected;
+            return Popup.ShowOptionList(Title: Title, Options: lines, Hotkeys: hotkeys, IntroIcon: IntroIcon, Icons: Icons.ToArray(), AllowEscape: true);
         }
 
         public class InventoryAction {
