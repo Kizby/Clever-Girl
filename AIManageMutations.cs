@@ -226,7 +226,10 @@ namespace XRL.World.Parts {
 
         [HarmonyPrefix]
         [HarmonyPatch(typeof(BaseMutation), "RapidLevel")]
-        public static void RapidLevelInstead(int amount, ref BaseMutation __instance) {
+        public static void RapidLevelInstead(int __0, ref BaseMutation __instance) {
+            // TODO: rename __0 back to Amount once the moon stair is stable
+            var Amount = __0;
+
             // check if we're managing this creature
             var manageMutations = __instance.ParentObject.GetPart<CleverGirl_AIManageMutations>();
 
@@ -238,7 +241,7 @@ namespace XRL.World.Parts {
             var whichKey = "RapidLevel_" + __instance.GetMutationClass();
 
             // pre-emptively reduce by the levels this mutation will gain
-            _ = __instance.ParentObject.ModIntProperty(whichKey, -amount);
+            _ = __instance.ParentObject.ModIntProperty(whichKey, -Amount);
 
             // pick an appropriate mutation instead
             var mutations = __instance.ParentObject.GetPart<Mutations>();
@@ -249,9 +252,9 @@ namespace XRL.World.Parts {
                           allPhysicalMutations[0];
             var insteadKey = "RapidLevel_" + instead.GetMutationClass();
             manageMutations.DidX("rapidly advance",
-                                 instead.DisplayName + " by " + Language.Grammar.Cardinal(amount) + " ranks to rank " + (instead.Level + amount),
+                                 instead.DisplayName + " by " + Language.Grammar.Cardinal(Amount) + " ranks to rank " + (instead.Level + Amount),
                                  "!", ColorAsGoodFor: __instance.ParentObject);
-            _ = __instance.ParentObject.ModIntProperty(insteadKey, amount);
+            _ = __instance.ParentObject.ModIntProperty(insteadKey, Amount);
 
             Utility.MaybeLog("Moved a RapidLevel from " + whichKey + " to " + instead);
         }
