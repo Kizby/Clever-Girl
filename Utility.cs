@@ -5,7 +5,6 @@ namespace XRL.World.CleverGirl {
     using System.Runtime.CompilerServices;
     using System.Text.RegularExpressions;
     using XRL.Rules;
-    using Qud.UI;
     using XRL.UI;
     using ConsoleLib.Console;
 
