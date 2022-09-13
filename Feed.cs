@@ -467,15 +467,10 @@ namespace XRL.World.CleverGirl {
                         "Surrounded by friends, the Carbide Chef =name= immortalized the memor" + (Companions.Count == 1 ? "y" : "ies") + " of " + allCompanions + " in the mouthwatering dish called {{|" + newRecipe.GetDisplayName() + "}}.",
                         muralCategory: JournalAccomplishment.MuralCategory.CreatesSomething,
                         muralWeight: JournalAccomplishment.MuralWeight.Low);
-                    var IncrementRecipeAchievement = AccessTools.Method(typeof(Campfire), "IncrementRecipeAchievement");
-                    if (IncrementRecipeAchievement != null) {
-                        // pre-deep jungle
-                        _ = IncrementRecipeAchievement.Invoke(null, new Type[] { });
-                    } else {
-                        // post-deep jungle
-                        var AchievementManager = AccessTools.TypeByName("AchievementManager");
-                        _ = AccessTools.Method(AchievementManager, "IncrementAchievement", new Type[] { typeof(string), typeof(int) }).Invoke(null, new object[] { "ACH_100_RECIPES", 1 });
-                    }
+
+                    var AchievementManager = AccessTools.TypeByName("AchievementManager");
+                    _ = AccessTools.Method(AchievementManager, "IncrementAchievement", new Type[] { typeof(string), typeof(int) }).Invoke(null, new object[] { "ACH_100_RECIPES", 1 });
+
                     _ = Leader.RemoveEffect(nameof(Inspired));
                 } else {
                     actualEffect = Campfire.GenerateEffectFromTypeList(ingredientTypes);
